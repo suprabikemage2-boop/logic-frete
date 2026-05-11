@@ -1892,15 +1892,16 @@
     async function initializeApp() {
       console.log("App: Iniciando initializeApp...");
       try {
-        // 1. Initial Sync (Need this for login validation)
-        await StorageManager.init();
-
-        // 2. Check Authentication
+        // 1. Show UI immediately
         checkAuth();
         
+        // 2. Start Sync in background
+        console.log("App: Sincronizando dados com Supabase...");
+        await StorageManager.init();
+
         const currentUser = StorageManager.getCurrentUser();
         if (currentUser) {
-          console.log("App: Usuário logado encontrado. Atualizando Dashboard...");
+          console.log("App: Usuário logado. Atualizando Dashboard...");
           refreshDashboard();
 
           // 3. Set auto-refresh for dashboard every 30 seconds
