@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOGIC FRETE — Gerenciador de Rotas de Entrega</title>
+  <meta name="description" content="Gerencie rotas de entrega com pesquisa inteligente de endereços, cálculo de distâncias e visualização de mapas. Otimize suas entregas com o LOGIC FRETE." />
+
+  <!-- MapLibre GL JS -->
+  <script src="https://unpkg.com/maplibre-gl@^4.0.0/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@^4.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Remix Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===================== LOGIN OVERLAY ===================== -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <i class="ri-truck-line"></i>
+        <h2>LOGIC <span>FRETE</span></h2>
+      </div>
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginUser">Usuário</label>
+          <div class="input-with-icon">
+            <i class="ri-user-line"></i>
+            <input type="text" id="loginUser" placeholder="Digite seu usuário" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="loginPass">Senha</label>
+          <div class="input-with-icon">
+            <i class="ri-lock-line"></i>
+            <input type="password" id="loginPass" placeholder="Digite sua senha" required />
+          </div>
+        </div>
+        <button type="submit" class="btn-primary btn-block">
+          Entrar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App Wrapper (To hide before login) -->
+  <div id="mainAppWrapper" style="display: none; height: 100vh;">
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="ri-truck-line"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">LOGIC</span>
+          <span class="logo-subtitle">FRETE</span>
+        </div>
+      </div>
+      <button class="btn-icon collapse-btn" id="btnCollapseSidebar" title="Recolher Sidebar">
+        <i class="ri-menu-fold-line"></i>
+      </button>
+    </div>
+
+    <!-- Nav Tabs -->
+    <nav class="sidebar-nav">
+      <button class="nav-tab active" id="tab-dashboard" data-tab="dashboard">
+        <i class="ri-dashboard-3-line"></i>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-tab" id="tab-routes" data-tab="routes">
+        <i class="ri-route-line"></i>
+        <span>Rotas</span>
+      </button>
+      <button class="nav-tab" id="tab-calendar" data-tab="calendar">
+        <i class="ri-calendar-todo-line"></i>
+        <span>Calendário</span>
+      </button>
+      <button class="nav-tab" id="tab-drivers" data-tab="drivers">
+        <i class="ri-user-star-line"></i>
+        <span>Motoristas</span>
+      </button>
+      <button class="nav-tab" id="tab-users" data-tab="users" style="display: none;">
+        <i class="ri-shield-user-line"></i>
+        <span>Usuários</span>
+      </button>
+      <div class="nav-divider"></div>
+      <button class="nav-tab" id="tab-map" data-tab="map">
+        <i class="ri-truck-fill" style="color:var(--accent-primary)"></i>
+        <span>Mapa</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="nav-tab btn-logout" id="btnLogout">
+        <i class="ri-logout-box-line"></i>
+        <span>Sair</span>
+      </button>
+    </div>
+
+
+    <!-- Sidebar Content -->
+    <div class="sidebar-content">
+
+      <!-- ===== DASHBOARD TAB (Moved to main area) ===== -->
+      <div class="tab-panel active" id="panel-dashboard"></div>
+
+      <div class="tab-panel" id="panel-routes"></div>
+
+
+
+      <div class="tab-panel" id="panel-drivers"></div>
+      <div class="tab-panel" id="panel-users"></div>
+    </div><!-- end sidebar-content -->
+  </aside>
+
+  <!-- ===================== MAIN MAP AREA ===================== -->
+  <main class="map-area">
+
+    <!-- DASHBOARD VIEW (Formerly in sidebar) -->
+    <div class="main-dashboard-view" id="mainDashboardView">
+      <div class="main-panel-header">
+          <h1 class="main-panel-title">Painel de Controle</h1>
+          <span id="currentDateDisplay" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 25px; display: block;"></span>
+      </div>
+
+      <div class="stats-grid-main">
+        <div class="stat-card" id="stat-routes-main" style="cursor: pointer;">
+          <div class="stat-icon" style="--clr:#00D4AA"><i class="ri-route-line"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-routes-val-main">0</span>
+            <span class="stat-label">Rotas Hoje</span>
+          </div>
+        </div>
+        <div class="stat-card" id="stat-pending-main" style="cursor: pointer;">
+          <div class="stat-icon" style="--clr:#FF6B35"><i class="ri-time-line"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-pending-val-main">0</span>
+            <span class="stat-label">Rotas Planejadas</span>
+          </div>
+        </div>
+        <div class="stat-card" id="stat-done-main" style="cursor: pointer;">
+          <div class="stat-icon" style="--clr:#00D4AA"><i class="ri-checkbox-circle-line"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-done-val-main">0</span>
+            <span class="stat-label">Concluídas</span>
+          </div>
+        </div>
+        <div class="stat-card" id="stat-km-main" style="cursor: pointer;">
+          <div class="stat-icon" style="--clr:#7C3AED"><i class="ri-map-2-line"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-km-val-main">0</span>
+            <span class="stat-label">km Hoje</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-content-grid">
+        <div class="dashboard-section">
+          <div class="section-header">
+            <span>Rotas Agendadas e Ativas</span>
+          </div>
+          <div class="active-routes-list" id="activeRoutesListMain">
+            <div class="empty-state">
+              <i class="ri-route-line"></i>
+              <p>Nenhuma rota ativa</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-section">
+          <div class="section-header">
+            <span>Desempenho Semanal (KM)</span>
+          </div>
+          <div class="weekly-chart-wrapper">
+             <div class="weekly-chart-bars" id="weeklyChartBars">
+                <!-- Bars will be injected here -->
+             </div>
+             <div class="weekly-chart-labels">
+                <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sab</span><span>Dom</span>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROUTES VIEW -->
+    <div class="main-panel-view" id="mainRoutesView" style="display:none">
+      <div class="main-panel-header">
+        <h1 class="main-panel-title">Rotas de Entrega</h1>
+        <button class="btn-primary" id="btnNewRouteMain">
+          <i class="ri-add-line"></i> Nova Rota
+        </button>
+      </div>
+      <div class="main-panel-controls">
+        <div class="search-box-main">
+          <i class="ri-search-line"></i>
+          <input type="text" id="searchRoutesMain" placeholder="Buscar rota por nome..." />
+        </div>
+        <div class="filter-chips">
+          <button class="chip active" data-filter="all">Todas</button>
+          <button class="chip" data-filter="planned">Planejadas</button>
+          <button class="chip" data-filter="active">Em andamento</button>
+          <button class="chip" data-filter="done">Concluídas</button>
+        </div>
+      </div>
+      <div class="main-grid-list" id="routesListMain"></div>
+    </div>
+
+    <!-- DRIVERS VIEW -->
+    <div class="main-panel-view" id="mainDriversView" style="display:none">
+      <div class="main-panel-header">
+        <h1 class="main-panel-title">Motoristas</h1>
+        <button class="btn-primary" id="btnNewDriverMain">
+          <i class="ri-add-line"></i> Novo Motorista
+        </button>
+      </div>
+      <div class="main-grid-list" id="driversListMain"></div>
+    </div>
+
+    <!-- CALENDAR VIEW -->
+    <div class="main-panel-view" id="mainCalendarView" style="display:none; flex-direction: column;">
+      <div class="main-panel-header">
+        <h1 class="main-panel-title">Calendário de Rotas</h1>
+        <div class="calendar-nav-controls">
+          <button class="btn-secondary btn-sm" id="btnPrevWeek"><i class="ri-arrow-left-s-line"></i> Anterior</button>
+          <span id="calendarWeekDisplay" style="font-weight: 600;">Semana Atual</span>
+          <button class="btn-secondary btn-sm" id="btnNextWeek">Próxima <i class="ri-arrow-right-s-line"></i></button>
+        </div>
+      </div>
+      <div class="calendar-kanban-board" id="calendarKanban">
+        <!-- Columns will be injected by JS -->
+      </div>
+    </div>
+
+    <!-- USERS VIEW -->
+    <div class="main-panel-view" id="mainUsersView" style="display:none">
+      <div class="main-panel-header">
+        <h1 class="main-panel-title">Gerenciar Usuários</h1>
+        <button class="btn-primary" id="btnNewUserMain">
+          <i class="ri-user-add-line"></i> Novo Usuário
+        </button>
+      </div>
+      <div class="main-grid-list" id="usersListMain"></div>
+    </div>
+
+    <!-- Map Controls Overlay (Floating) -->
+    <div class="map-controls-overlay" id="mapControlsOverlay" style="display:none">
+      <div class="address-search-wrap" id="addressSearchWrap">
+        <i class="ri-search-2-line search-icon-main"></i>
+        <input
+          type="text"
+          id="addressSearchInput"
+          class="address-search-input"
+          placeholder="Pesquisar endereço no mapa..."
+          autocomplete="off"
+        />
+        <div class="search-suggestions" id="searchSuggestions"></div>
+        <button class="btn-icon clear-search" id="clearSearch" style="display:none">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn-icon" id="btnLocate" title="Minha localização">
+          <i class="ri-focus-3-line"></i>
+        </button>
+        <button class="btn-icon" id="btnFitAll" title="Ver todas as rotas">
+          <i class="ri-fullscreen-line"></i>
+        </button>
+        <button class="btn-icon" id="btnExport" title="Exportar dados">
+          <i class="ri-download-2-line"></i>
+        </button>
+      </div>
+
+      <!-- Map Theme Switcher -->
+      <div class="map-theme-switcher">
+        <button class="theme-btn" data-theme="dark" title="Modo Escuro">
+          <i class="ri-moon-fill"></i>
+        </button>
+        <button class="theme-btn" data-theme="satellite" title="Modo Satélite">
+          <i class="ri-earth-line"></i>
+        </button>
+        <button class="theme-btn active" data-theme="light" title="Modo Claro">
+          <i class="ri-sun-line"></i>
+        </button>
+        <div class="theme-divider"></div>
+        <button class="theme-btn" id="btnTraffic" title="Trânsito em Tempo Real">
+          <i class="ri-traffic-light-line"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- The Map -->
+    <div id="map"></div>
+
+    <!-- Route Detail Panel (shown when a route is selected) -->
+    <div class="route-detail-panel" id="routeDetailPanel">
+      <div class="rdp-header">
+        <div class="rdp-title-wrap">
+          <span class="rdp-badge" id="rdpBadge">Planejada</span>
+          <h2 class="rdp-title" id="rdpTitle">—</h2>
+        </div>
+        <button class="btn-icon" id="rdpClose"><i class="ri-close-line"></i></button>
+      </div>
+
+      <div class="rdp-meta" id="rdpMeta"></div>
+
+      <div class="rdp-stats">
+        <div class="rdp-stat">
+          <i class="ri-map-2-line"></i>
+          <span id="rdpDistance">— km</span>
+        </div>
+        <div class="rdp-stat">
+          <i class="ri-time-line"></i>
+          <span id="rdpDuration">— min</span>
+        </div>
+        <div class="rdp-stat">
+          <i class="ri-map-pin-line"></i>
+          <span id="rdpStops">0 paradas</span>
+        </div>
+      </div>
+
+      <div class="rdp-stops-wrap">
+        <div class="rdp-stops-header">
+          <span>Paradas</span>
+          <div class="rdp-stops-actions">
+            <button class="btn-add-small" id="rdpOptimize" title="Otimizar ordem das paradas">
+              <i class="ri-magic-line"></i> Otimizar
+            </button>
+            <button class="btn-add-small" id="rdpAddStop">
+              <i class="ri-add-line"></i> Adicionar
+            </button>
+          </div>
+        </div>
+        <ol class="rdp-stops-list" id="rdpStopsList"></ol>
+      </div>
+
+      <div class="rdp-actions">
+        <button class="btn-secondary" id="rdpEditBtn"><i class="ri-edit-line"></i> Editar</button>
+        <button class="btn-primary" id="rdpStartBtn"><i class="ri-play-circle-line"></i> Iniciar</button>
+        <button class="btn-danger" id="rdpDeleteBtn"><i class="ri-delete-bin-line"></i></button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===================== MODAL: NOVA/EDITAR ROTA ===================== -->
+  <div class="modal-overlay" id="modalRoute">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalRouteTitle">Nova Rota</h3>
+        <button class="btn-icon" id="closeModalRoute"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="routeName">Nome da Rota *</label>
+          <input type="text" id="routeName" placeholder="Ex: Rota Centro - Manhã" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="routeDate">Data</label>
+            <input type="date" id="routeDate" />
+          </div>
+          <div class="form-group">
+            <label for="routeDriver">Motorista</label>
+            <select id="routeDriver">
+              <option value="">Sem motorista</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="routeOriginInput">Ponto de Partida *</label>
+          <div class="address-input-wrap" id="originWrap">
+            <i class="ri-map-pin-2-line pin-origin"></i>
+            <input type="text" id="routeOriginInput" placeholder="Buscar endereço de origem..." autocomplete="off" />
+            <div class="address-suggestions" id="originSuggestions"></div>
+          </div>
+          <input type="hidden" id="routeOriginLat" />
+          <input type="hidden" id="routeOriginLng" />
+          <input type="hidden" id="routeOriginAddr" />
+        </div>
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="routeNotes" rows="2" placeholder="Observações gerais..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="routeVehicle">Veículo</label>
+            <input type="text" id="routeVehicle" placeholder="Ex: Fiat Fiorino" />
+          </div>
+          <div class="form-group">
+            <label for="routePlate">Placa</label>
+            <input type="text" id="routePlate" placeholder="ABC-1234" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cor do Card</label>
+          <div class="color-picker-grid">
+            <label class="color-option">
+              <input type="radio" name="routeColor" value="default" checked>
+              <span class="color-circle default" title="Padrão"></span>
+            </label>
+            <label class="color-option">
+              <input type="radio" name="routeColor" value="blue">
+              <span class="color-circle blue" title="Azul Claro"></span>
+            </label>
+            <label class="color-option">
+              <input type="radio" name="routeColor" value="red">
+              <span class="color-circle red" title="Vermelho Claro"></span>
+            </label>
+            <label class="color-option">
+              <input type="radio" name="routeColor" value="green">
+              <span class="color-circle green" title="Verde Claro"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelModalRoute">Cancelar</button>
+        <button class="btn-primary" id="saveRoute">
+          <i class="ri-save-line"></i> Salvar Rota
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: NOVA/EDITAR PARADA ===================== -->
+  <div class="modal-overlay" id="modalDelivery">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalDeliveryTitle">Nova Parada</h3>
+        <button class="btn-icon" id="closeModalDelivery"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="deliveryRoute">Rota *</label>
+          <select id="deliveryRoute">
+            <option value="">Selecione uma rota...</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="deliveryRecipient">Destinatário *</label>
+            <input type="text" id="deliveryRecipient" placeholder="Nome do destinatário" />
+          </div>
+          <div class="form-group">
+            <label for="deliveryCpf">CPF/CNPJ</label>
+            <input type="text" id="deliveryCpf" placeholder="000.000.000-00" />
+          </div>
+          <div class="form-group">
+            <label for="deliveryPhone">Telefone</label>
+            <input type="tel" id="deliveryPhone" placeholder="(00) 00000-0000" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="deliveryAddressInput">Endereço de Entrega *</label>
+          <div class="address-input-wrap" id="deliveryAddrWrap">
+            <i class="ri-map-pin-line pin-stop"></i>
+            <input type="text" id="deliveryAddressInput" placeholder="Buscar endereço..." autocomplete="off" />
+            <div class="address-suggestions" id="deliverySuggestions"></div>
+          </div>
+          <input type="hidden" id="deliveryLat" />
+          <input type="hidden" id="deliveryLng" />
+          <input type="hidden" id="deliveryAddr" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="deliveryOrder">Ordem na Rota</label>
+            <input type="number" id="deliveryOrder" min="1" value="1" />
+          </div>
+          <div class="form-group">
+            <label for="deliveryStatus">Status</label>
+            <select id="deliveryStatus">
+              <option value="pending">Pendente</option>
+              <option value="in_route">Em rota</option>
+              <option value="delivered">Entregue</option>
+              <option value="failed">Falha</option>
+              <option value="rescheduled">Reagendado</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="deliveryNotes">Observações</label>
+          <textarea id="deliveryNotes" rows="2" placeholder="Instruções de entrega, ponto de referência..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelModalDelivery">Cancelar</button>
+        <button class="btn-primary" id="saveDelivery">
+          <i class="ri-save-line"></i> Salvar Parada
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: MOTORISTA ===================== -->
+  <div class="modal-overlay" id="modalDriver">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3 id="modalDriverTitle">Novo Motorista</h3>
+        <button class="btn-icon" id="closeModalDriver"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="driverName">Nome Completo *</label>
+          <input type="text" id="driverName" placeholder="Nome do motorista" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="driverPhone">Telefone</label>
+            <input type="tel" id="driverPhone" placeholder="(00) 00000-0000" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelModalDriver">Cancelar</button>
+        <button class="btn-primary" id="saveDriver">
+          <i class="ri-save-line"></i> Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: USUÁRIO ===================== -->
+  <div class="modal-overlay" id="modalUser">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalUserTitle">Novo Usuário</h3>
+        <button class="btn-icon" id="closeModalUser"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="userName">Nome Completo *</label>
+          <input type="text" id="userName" placeholder="Nome do usuário" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="userUsername">Usuário (Login) *</label>
+            <input type="text" id="userUsername" placeholder="Ex: joao.silva" />
+          </div>
+          <div class="form-group">
+            <label for="userPassword">Senha *</label>
+            <input type="password" id="userPassword" placeholder="******" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="userRole">Nível de Acesso *</label>
+          <select id="userRole">
+            <option value="Motorista">Motorista</option>
+            <option value="Gerente">Gerente</option>
+            <option value="MASTER">MASTER</option>
+          </select>
+        </div>
+        
+        <div class="form-group" id="permissionsGroup">
+          <label>Permissões</label>
+          <div class="permissions-grid">
+            <label class="checkbox-label">
+              <input type="checkbox" id="perm_view_route" checked>
+              <span>Visualizar Rota</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="perm_edit_route">
+              <span>Editar/Criar Rota</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="perm_reorder_stops">
+              <span>Reorganizar Ordem de Paradas</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="perm_edit_notes">
+              <span>Escrever nas Observações</span>
+            </label>
+          </div>
+          <small class="text-muted" style="display:block; margin-top:8px;">* Usuários MASTER têm todas as permissões ativas por padrão.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelModalUser">Cancelar</button>
+        <button class="btn-primary" id="saveUser">
+          <i class="ri-save-line"></i> Salvar Usuário
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===================== TOAST NOTIFICATIONS ===================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ===================== CONFIRM DIALOG ===================== -->
+  <div class="modal-overlay" id="confirmDialog" style="display:none">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3><i class="ri-error-warning-line" style="color:#FF6B35"></i> Confirmar Ação</h3>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage">Tem certeza?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="confirmCancel">Cancelar</button>
+        <button class="btn-danger" id="confirmOk">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Area (Hidden during normal use) -->
+  <div id="printArea"></div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script src="data.js"></script>
+  <script src="maps.js"></script>
+  <script src="app.js"></script>
+  </div> <!-- End Main App Wrapper -->
+</body>
+</html>
