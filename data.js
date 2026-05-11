@@ -6,10 +6,25 @@
 const SUPABASE_URL = 'https://xzemyhfmydvekoqitnsu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_WzdundBjLnVYIp-jgoxJEg_dY1irGLY';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let _supabaseInstance; // Nome alterado para evitar conflito
+
+function getSupabase() {
+  if (!_supabaseInstance) {
+    if (typeof window.supabase === 'undefined') {
+      console.warn("Supabase: SDK não encontrado.");
+      return null;
+    }
+    try {
+      _supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    } catch (e) {
+      console.error("Supabase: Erro ao criar cliente:", e);
+      return null;
+    }
+  }
+  return _supabaseInstance;
+}
 
 const StorageManager = {
-  // Local cache for performance
   _cache: {
     users: [],
     drivers: [],
@@ -17,52 +32,92 @@ const StorageManager = {
     deliveries: []
   },
 
-  /**
-   * INITIALIZATION
-   * Fetches all data from Supabase to local cache
-   */
   async init() {
-    console.log("Iniciando conexão com Supabase...");
+    console.log("Data: Iniciando sincronização...");
+    const client = getSupabase();
+    if (!client) {
+      console.error("Data: Supabase não disponível.");
+      return;
+    }
+
     try {
-      const users = await this.fetchUsers();
+      const { data: users, error: uError } = await client.from('users').select('*');
+      if (!uError) this._cache.users = users || [];
       
-      // FIRST RUN: Create default admin if no users exist
-      if (users.length === 0) {
-        console.log("Banco de dados vazio. Criando admin padrão...");
-        const adminUser = {
+      if (this._cache.users.length === 0) {
+        await this.saveUser({
           name: 'Administrador',
           username: 'admin',
           password: 'admin123',
-          role: 'Master',
-          permissions: ['view_route', 'edit_route', 'reorder_stops', 'edit_notes']
-        };
-        await this.saveUser(adminUser);
+          role: 'MASTER'
+        });
       }
 
-      await Promise.all([
-        this.fetchDrivers(),
-        this.fetchRoutes(),
-        this.fetchDeliveries()
+      const [drivers, routes, deliveries] = await Promise.all([
+        client.from('drivers').select('*'),
+        client.from('routes').select('*'),
+        client.from('deliveries').select('*')
       ]);
-      console.log("Sincronização inicial concluída.");
+
+      if (drivers.data) this._cache.drivers = drivers.data;
+      if (routes.data) {
+        this._cache.routes = routes.data.map(r => ({
+          ...r,
+          distanceKm: r.distance_km,
+          durationMin: r.duration_min,
+          driverId: r.driver_id
+        }));
+      }
+      if (deliveries.data) {
+        this._cache.deliveries = deliveries.data.map(d => ({
+          ...d,
+          routeId: d.route_id
+        }));
+      }
+      console.log("Data: Sincronização OK.");
     } catch (err) {
-      console.error("Erro na sincronização inicial:", err);
+      console.error("Data: Erro sync:", err);
     }
   },
 
-  // --- FETCHERS ---
+  getUsers() { return this._cache.users; },
   async fetchUsers() {
-    const { data, error } = await supabase.from('users').select('*');
+    const client = getSupabase();
+    if (!client) return [];
+    const { data, error } = await client.from('users').select('*');
     if (!error) this._cache.users = data;
     return this._cache.users;
   },
+  async saveUser(user) {
+    const client = getSupabase();
+    if (!client) return null;
+    const { data, error } = await client.from('users').upsert(user).select();
+    if (!error) await this.fetchUsers();
+    return data ? data[0] : null;
+  },
+
+  getDrivers() { return this._cache.drivers; },
   async fetchDrivers() {
-    const { data, error } = await supabase.from('drivers').select('*');
+    const client = getSupabase();
+    if (!client) return [];
+    const { data, error } = await client.from('drivers').select('*');
     if (!error) this._cache.drivers = data;
     return this._cache.drivers;
   },
+  async saveDriver(driver) {
+    const client = getSupabase();
+    if (!client) return null;
+    const { data, error } = await client.from('drivers').upsert(driver).select();
+    if (!error) await this.fetchDrivers();
+    return data ? data[0] : null;
+  },
+
+  getRoutes() { return this._cache.routes; },
+  getRoute(id) { return this._cache.routes.find(r => r.id === id); },
   async fetchRoutes() {
-    const { data, error } = await supabase.from('routes').select('*');
+    const client = getSupabase();
+    if (!client) return [];
+    const { data, error } = await client.from('routes').select('*');
     if (!error) {
       this._cache.routes = data.map(r => ({
         ...r,
@@ -73,113 +128,66 @@ const StorageManager = {
     }
     return this._cache.routes;
   },
-  async fetchDeliveries() {
-    const { data, error } = await supabase.from('deliveries').select('*');
-    if (!error) {
-      this._cache.deliveries = data.map(d => ({
-        ...d,
-        routeId: d.route_id
-      }));
-    }
-    return this._cache.deliveries;
-  },
-
-  // --- USERS ---
-  getUsers() { return this._cache.users; },
-  async saveUser(user) {
-    const { data, error } = await supabase.from('users').upsert(user).select();
-    if (!error) await this.fetchUsers();
-    return data ? data[0] : null;
-  },
-  async deleteUser(id) {
-    await supabase.from('users').delete().eq('id', id);
-    await this.fetchUsers();
-  },
-
-  // --- DRIVERS ---
-  getDrivers() { return this._cache.drivers; },
-  async saveDriver(driver) {
-    const { data, error } = await supabase.from('drivers').upsert(driver).select();
-    if (!error) await this.fetchDrivers();
-    return data ? data[0] : null;
-  },
-  async deleteDriver(id) {
-    await supabase.from('drivers').delete().eq('id', id);
-    await this.fetchDrivers();
-  },
-
-  // --- ROUTES ---
-  getRoutes() { return this._cache.routes; },
-  getRoute(id) { return this._cache.routes.find(r => r.id === id); },
   async saveRoute(route) {
-    const dbRoute = {
-      ...route,
-      distance_km: route.distanceKm,
-      duration_min: route.durationMin,
-      driver_id: route.driverId
-    };
-    delete dbRoute.distanceKm;
-    delete dbRoute.durationMin;
-    delete dbRoute.driverId;
-
-    const { data, error } = await supabase.from('routes').upsert(dbRoute).select();
+    const client = getSupabase();
+    if (!client) return null;
+    const dbRoute = {...route, distance_km: route.distanceKm, duration_min: route.durationMin, driver_id: route.driverId };
+    delete dbRoute.distanceKm; delete dbRoute.durationMin; delete dbRoute.driverId;
+    const { data, error } = await client.from('routes').upsert(dbRoute).select();
     if (!error) await this.fetchRoutes();
     return data ? data[0] : null;
   },
   async deleteRoute(id) {
-    await supabase.from('routes').delete().eq('id', id);
+    const client = getSupabase();
+    if (!client) return;
+    await client.from('routes').delete().eq('id', id);
     await this.fetchRoutes();
   },
 
-  // --- DELIVERIES ---
   getDeliveries() { return this._cache.deliveries; },
   getDeliveriesByRoute(routeId) {
     return this._cache.deliveries.filter(d => d.routeId === routeId).sort((a, b) => a.order - b.order);
   },
+  async fetchDeliveries() {
+    const client = getSupabase();
+    if (!client) return [];
+    const { data, error } = await client.from('deliveries').select('*');
+    if (!error) {
+      this._cache.deliveries = data.map(d => ({...d, routeId: d.route_id}));
+    }
+    return this._cache.deliveries;
+  },
   async saveDelivery(delivery) {
-    const dbDelivery = {
-      ...delivery,
-      route_id: delivery.routeId
-    };
+    const client = getSupabase();
+    if (!client) return null;
+    const dbDelivery = {...delivery, route_id: delivery.routeId};
     delete dbDelivery.routeId;
-
-    const { data, error } = await supabase.from('deliveries').upsert(dbDelivery).select();
+    const { data, error } = await client.from('deliveries').upsert(dbDelivery).select();
     if (!error) await this.fetchDeliveries();
     return data ? data[0] : null;
   },
-  async deleteDelivery(id) {
-    await supabase.from('deliveries').delete().eq('id', id);
-    await this.fetchDeliveries();
-  },
 
-  // --- AUTH ---
+  async login(username, password) {
+    const user = this._cache.users.find(u => u.username === username && u.password === password);
+    if (user) { this.setCurrentUser(user); return true; }
+    return false;
+  },
   getCurrentUser() {
     const session = localStorage.getItem('logic_frete_session');
     return session ? JSON.parse(session) : null;
   },
-  setCurrentUser(user) {
-    localStorage.setItem('logic_frete_session', JSON.stringify(user));
-  },
-  logout() {
-    localStorage.removeItem('logic_frete_session');
-  },
+  setCurrentUser(user) { localStorage.setItem('logic_frete_session', JSON.stringify(user)); },
+  logout() { localStorage.removeItem('logic_frete_session'); },
 
-  // --- DASHBOARD STATS ---
   getDashboardStats() {
     const routes = this.getRoutes();
-    const now = new Date();
-    const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-    
+    const todayStr = new Date().toISOString().split('T')[0];
     const todayRoutes = routes.filter(r => r.date && String(r.date).startsWith(todayStr));
-    const pendingCount = todayRoutes.filter(r => r.status === 'planned').length;
-    const doneCount = todayRoutes.filter(r => r.status === 'done').length;
-    
-    let totalKm = todayRoutes.reduce((sum, r) => sum + (parseFloat(String(r.distanceKm || '0')) || 0), 0);
-    
+    const totalKm = todayRoutes.reduce((sum, r) => sum + (parseFloat(r.distanceKm) || 0), 0);
     return {
       routesToday: todayRoutes.length,
-      pending: pendingCount,
-      done: doneCount,
+      pending: todayRoutes.filter(r => r.status === 'planned').length,
+      done: todayRoutes.filter(r => r.status === 'done').length,
       km: totalKm.toFixed(1)
     };
   }
