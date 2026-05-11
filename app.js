@@ -25,6 +25,11 @@
         
         // Initial dashboard refresh
         refreshDashboard();
+
+        // Wake up map
+        setTimeout(() => {
+          if (MapService.map) MapService.map.resize();
+        }, 500);
       } else {
         if (loginOverlay) loginOverlay.style.display = 'flex';
         if (mainAppWrapper) mainAppWrapper.style.display = 'none';
@@ -109,11 +114,37 @@
     }
 
 
-    // === UI ELEMENTS ===
-    // Sidebar
+    // Sidebar & Mobile Menu
     const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const btnOpenSidebar = document.getElementById('btnOpenSidebar');
+    const btnCollapseSidebar = document.getElementById('btnCollapseSidebar');
     const navTabs = document.querySelectorAll('.nav-tab');
     const tabPanels = document.querySelectorAll('.tab-panel');
+
+    function toggleMobileMenu(forceClose = false) {
+      if (window.innerWidth <= 600) {
+        if (forceClose) {
+          sidebar.classList.remove('mobile-active');
+          sidebarOverlay.classList.remove('active');
+        } else {
+          sidebar.classList.toggle('mobile-active');
+          sidebarOverlay.classList.toggle('active');
+        }
+      } else {
+        sidebar.classList.toggle('collapsed');
+      }
+      
+      // Fix Map if visible
+      setTimeout(() => {
+        if (MapService.map) MapService.map.resize();
+      }, 300);
+    }
+
+    btnOpenSidebar?.addEventListener('click', () => toggleMobileMenu());
+    sidebarOverlay?.addEventListener('click', () => toggleMobileMenu(true));
+    btnCollapseSidebar?.addEventListener('click', () => toggleMobileMenu(true));
+
   
     // Modals
     const modalRoute = document.getElementById('modalRoute');
@@ -199,7 +230,7 @@
           if(el) el.style.display = el.id === 'routeDetailPanel' ? (activeRouteId ? 'flex' : 'none') : 'flex';
         });
         setTimeout(() => {
-          if (MapService && MapService.map) MapService.map.invalidateSize();
+          if (MapService && MapService.map) MapService.map.resize();
         }, 100);
         return;
       }
@@ -221,6 +252,9 @@
   
     navTabs.forEach(tab => {
       tab.addEventListener('click', () => {
+        // Close menu on mobile
+        toggleMobileMenu(true);
+
         // Remove active
         navTabs.forEach(t => t.classList.remove('active'));
         tabPanels.forEach(p => p.classList.remove('active'));
@@ -240,6 +274,11 @@
           'map': 'map'
         };
         showMainView(viewMap[tab.dataset.tab]);
+        
+        // Force map resize
+        if (tab.dataset.tab === 'map' && MapService.map) {
+          setTimeout(() => MapService.map.resize(), 100);
+        }
       });
     });
 
