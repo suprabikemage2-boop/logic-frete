@@ -31,12 +31,13 @@
       }
     }
 
-    loginForm?.addEventListener('submit', (e) => {
+    loginForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const user = document.getElementById('loginUser').value;
       const pass = document.getElementById('loginPass').value;
       
-      if (StorageManager.login(user, pass)) {
+      const success = await StorageManager.login(user, pass);
+      if (success) {
         showToast('Login realizado com sucesso!');
         loginForm.reset();
         checkAuth();
@@ -1636,12 +1637,12 @@
       // Auto update deliveries status
       if (newStatus === 'active') {
         const stops = StorageManager.getDeliveriesByRoute(id);
-        stops.forEach(s => {
+        for (const s of stops) {
           if (s.status === 'pending') {
             s.status = 'in_route';
             await StorageManager.saveDelivery(s);
           }
-        });
+        }
       }
       
       loadRouteToMap(id);
@@ -1889,33 +1890,41 @@
 
     // === INITIALIZATION ===
     async function initializeApp() {
+      console.log("App: Iniciando initializeApp...");
       try {
-        // 1. Check Authentication FIRST
+        // 1. Initial Sync (Need this for login validation)
+        await StorageManager.init();
+
+        // 2. Check Authentication
         checkAuth();
         
         const currentUser = StorageManager.getCurrentUser();
         if (currentUser) {
-          // 2. Wait for Supabase Data
-          await StorageManager.init();
-          
+          console.log("App: Usuário logado encontrado. Atualizando Dashboard...");
+          refreshDashboard();
+
           // 3. Set auto-refresh for dashboard every 30 seconds
           setInterval(async () => {
-            await StorageManager.init(); // Refresh cache from cloud
+            console.log("App: Sincronização periódica iniciada...");
+            await StorageManager.init(); 
             refreshDashboard();
-            renderRoutesList(); // Update lists too
+            renderRoutesList();
           }, 30000);
           
           // 4. Initialize Map Service (Async)
           setTimeout(() => {
             try {
+              console.log("App: Inicializando Map Service...");
               MapService.init('map');
             } catch (mapErr) {
-              console.error("Erro ao iniciar mapa:", mapErr);
+              console.error("App: Erro ao iniciar mapa:", mapErr);
             }
           }, 100);
+        } else {
+          console.log("App: Nenhum usuário logado. Tela de login pronta.");
         }
       } catch (e) {
-        console.error("Erro crítico na inicialização:", e);
+        console.error("App: Erro crítico na inicialização:", e);
       }
     }
 
