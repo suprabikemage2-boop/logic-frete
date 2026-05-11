@@ -95,6 +95,12 @@ const StorageManager = {
     if (!error) await this.fetchUsers();
     return data ? data[0] : null;
   },
+  async deleteUser(id) {
+    const client = getSupabase();
+    if (!client) return;
+    await client.from('users').delete().eq('id', id);
+    this._cache.users = this._cache.users.filter(u => u.id !== id);
+  },
 
   getDrivers() { return this._cache.drivers; },
   async fetchDrivers() {
@@ -110,6 +116,12 @@ const StorageManager = {
     const { data, error } = await client.from('drivers').upsert(driver).select();
     if (!error) await this.fetchDrivers();
     return data ? data[0] : null;
+  },
+  async deleteDriver(id) {
+    const client = getSupabase();
+    if (!client) return;
+    await client.from('drivers').delete().eq('id', id);
+    this._cache.drivers = this._cache.drivers.filter(d => d.id !== id);
   },
 
   getRoutes() { return this._cache.routes; },
@@ -165,6 +177,13 @@ const StorageManager = {
     const { data, error } = await client.from('deliveries').upsert(dbDelivery).select();
     if (!error) await this.fetchDeliveries();
     return data ? data[0] : null;
+  },
+  async deleteDelivery(id) {
+    const client = getSupabase();
+    if (!client) return;
+    await client.from('deliveries').delete().eq('id', id);
+    this._cache.deliveries = this._cache.deliveries.filter(d => d.id !== id);
+    await this.fetchDeliveries();
   },
 
   async login(username, password) {
