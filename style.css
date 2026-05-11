@@ -62,6 +62,11 @@
     padding: 0;
     overflow: hidden;
   }
+
+  /* Mobile Header - hidden on desktop by default */
+  .mobile-header {
+    display: none;
+  }
   
   h1, h2, h3, h4, h5, h6 {
     color: var(--text-white);
@@ -2697,112 +2702,307 @@
   75% { transform: translateX(-5px); }
 }
 
-/* SMARTPHONE OPTIMIZATIONS (Max-width: 600px) */
-@media (max-width: 600px) {
+/* ==========================================================================
+   RESPONSIVE - TABLET (max 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* Mobile Header */
   .mobile-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 15px;
-    background: var(--bg-card);
+    padding: 0 15px;
+    background: var(--bg-panel);
     border-bottom: 1px solid var(--border-color);
-    height: 60px;
+    height: 56px;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 1500;
+    backdrop-filter: blur(10px);
   }
 
-  .mobile-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text-main);
-    font-size: 1.1rem;
-  }
-
-  .mobile-logo i {
-    color: var(--accent-primary);
-    font-size: 1.4rem;
-  }
-
-  /* Adjust Main App Wrapper for Mobile Header */
-  #mainAppWrapper {
-    padding-top: 60px;
-    flex-direction: column !important;
-  }
-
+  /* Sidebar becomes a drawer */
   .sidebar {
     position: fixed !important;
     top: 0;
-    left: -280px; /* Hidden by default */
+    left: -290px;
     width: 280px !important;
     height: 100vh !important;
     z-index: 2000 !important;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+    box-shadow: 8px 0 32px rgba(0,0,0,0.6);
     background: var(--bg-dark) !important;
+    border-right: 1px solid var(--border-color);
   }
 
   .sidebar.mobile-active {
     left: 0 !important;
   }
 
-  /* Overlay when sidebar is open */
+  /* Sidebar content padding for the header */
+  .sidebar-header {
+    padding-top: 4px;
+  }
+
+  /* Overlay backdrop */
   .sidebar-overlay {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.7);
+    inset: 0;
+    background: rgba(0,0,0,0.65);
     z-index: 1999;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(3px);
   }
 
   .sidebar-overlay.active {
     display: block;
   }
 
-  .sidebar-header .collapse-btn {
-    display: block !important; /* Reuse for closing */
-  }
-
-  .logo-text, .nav-tab span {
+  /* Always show text in drawer */
+  .logo-text,
+  .nav-tab span {
     display: block !important;
   }
 
-  /* Main Dashboard Stats for Mobile */
+  /* App wrapper adjusts for fixed header */
+  #mainAppWrapper {
+    flex-direction: column !important;
+    padding-top: 56px;
+  }
+
+  /* Map area fills remaining height */
+  .map-area {
+    height: calc(100vh - 56px) !important;
+    width: 100vw !important;
+  }
+
+  /* Stats: 2 columns on tablet */
   .stats-grid-main {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Dashboard content: stacks vertically */
+  .dashboard-content-grid {
     grid-template-columns: 1fr !important;
-    gap: 10px !important;
+    gap: 15px !important;
   }
 
   .main-dashboard-view {
     padding: 15px !important;
+    gap: 15px !important;
   }
 
-  /* Map and Panels */
-  .map-area {
-    height: calc(100vh - 60px) !important;
+  .main-panel-view {
+    padding: 15px !important;
+    gap: 15px !important;
   }
 
-  #map {
-    height: 100% !important;
-    min-height: 300px;
+  /* Routes list: single column */
+  .main-grid-list {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
 
+  /* Panel header: stack title and button */
+  .main-panel-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .main-panel-title {
+    font-size: 1.4rem !important;
+  }
+
+  /* Controls: stack vertically */
+  .main-panel-controls {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .search-box-main {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  /* Filter chips: scroll horizontally */
+  .filter-chips {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 6px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-chips::-webkit-scrollbar {
+    height: 2px;
+  }
+
+  /* Modal: full screen on mobile */
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 95vh !important;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+    margin-top: auto !important;
+  }
+
+  .modal-overlay {
+    align-items: flex-end !important;
+  }
+
+  /* Form rows: stack to single column */
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Modal body: slightly more compact */
+  .modal-body {
+    padding: 15px !important;
+    gap: 12px !important;
+  }
+
+  .modal-header,
+  .modal-footer {
+    padding: 15px !important;
+  }
+
+  /* Route detail panel: bottom sheet */
+  .route-detail-panel {
+    width: 100% !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    max-height: 60vh !important;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+  }
+
+  /* Map controls: full width */
   .map-controls-overlay {
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    left: 10px !important;
+    right: 10px !important;
     width: calc(100% - 20px) !important;
+    transform: none !important;
+    top: 10px !important;
   }
 
-  /* Hide tabs that are too complex for mobile initially if needed */
-  /* .nav-tab[data-tab="calendar"] { display: none; } */
+  /* Details actions: wrap and scroll */
+  .details-actions {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .details-actions button {
+    flex: 1 1 auto !important;
+    min-width: 70px !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* Calendar: horizontally scrollable */
+  .calendar-kanban-board {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-nav-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Permission grid: single column */
+  .permissions-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Weekly chart smaller */
+  .weekly-chart-wrapper {
+    height: 150px !important;
+  }
+
+  /* Stop detail item: adjust for touch */
+  .stop-detail-item {
+    padding: 10px 8px;
+  }
+
+  /* RDP actions: wrap */
+  .rdp-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .rdp-actions button {
+    flex: 1;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE - SMALL PHONE (max 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+  /* Stats: single column on small phones */
+  .stats-grid-main {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .stat-card {
+    padding: 14px !important;
+  }
+
+  .stat-value {
+    font-size: 1.3rem !important;
+  }
+
+  /* Even more compact dashboard */
+  .main-dashboard-view {
+    padding: 10px !important;
+  }
+
+  .main-panel-view {
+    padding: 10px !important;
+  }
+
+  .main-panel-title {
+    font-size: 1.2rem !important;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 9px 14px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Calendar column smaller */
+  .calendar-column {
+    min-width: 240px !important;
+    width: 240px !important;
+  }
+
+  /* Form inputs: slightly larger for touch */
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents iOS zoom */
+    padding: 11px 13px !important;
+  }
+
+  /* Toast: full width at bottom */
+  .toast-container {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    width: auto !important;
+  }
+
+  .toast {
+    font-size: 0.82rem !important;
+  }
 }
 
 

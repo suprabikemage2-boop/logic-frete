@@ -123,16 +123,21 @@
     const tabPanels = document.querySelectorAll('.tab-panel');
 
     function toggleMobileMenu(forceClose = false) {
-      if (window.innerWidth <= 600) {
+      if (window.innerWidth <= 768) {
         if (forceClose) {
           sidebar.classList.remove('mobile-active');
-          sidebarOverlay.classList.remove('active');
+          if (sidebarOverlay) sidebarOverlay.classList.remove('active');
         } else {
           sidebar.classList.toggle('mobile-active');
-          sidebarOverlay.classList.toggle('active');
+          if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
         }
       } else {
-        sidebar.classList.toggle('collapsed');
+        // On desktop, just collapse sidebar (icon-only mode)
+        if (forceClose) {
+          // do nothing on desktop 'close'
+        } else {
+          sidebar.classList.toggle('collapsed');
+        }
       }
       
       // Fix Map if visible
@@ -314,16 +319,20 @@
     });
   
     // === SIDEBAR COLLAPSE LOGIC ===
-    // Note: btnCollapseSidebar already declared at line 121 — not redeclared here
-    
-    // Load state from localStorage
-    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (isSidebarCollapsed) {
-      sidebar.classList.add('collapsed');
+    // Restore collapsed state only on desktop
+    if (window.innerWidth > 768) {
+      const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+      if (isSidebarCollapsed) sidebar.classList.add('collapsed');
     }
 
-    // Desktop collapse is handled inside toggleMobileMenu().
-    // The btnCollapseSidebar listener is already registered at line 146.
+    // Persist desktop collapse state
+    if (btnCollapseSidebar) {
+      btnCollapseSidebar.addEventListener('change', () => {
+        if (window.innerWidth > 768) {
+          localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+      });
+    }
 
     // === MAP CONTROLS ===
     document.getElementById('btnLocate')?.addEventListener('click', () => MapService.locateUser());
@@ -508,32 +517,45 @@
     cancelModalRoute.addEventListener('click', closeRouteModal);
   
     saveRouteBtn.addEventListener('click', async () => {
-      const name = document.getElementById('routeName').value;
+      const name = document.getElementById('routeName').value.trim();
       const lat = document.getElementById('routeOriginLat').value;
       const lng = document.getElementById('routeOriginLng').value;
-      const addr = document.getElementById('routeOriginInput').value;
+      const addr = document.getElementById('routeOriginInput').value.trim();
   
       if (!name) return showToast('Nome da rota é obrigatório', 'error');
-      if (!lat || !lng) return showToast('Selecione um ponto de partida válido', 'error');
+      if (!addr) return showToast('Informe o ponto de partida', 'error');
+      
+      // If user typed address but didn't pick from autocomplete, warn but allow
+      if (!lat || !lng) {
+        showToast('Endereço sem coordenadas — busque e selecione um endereço da lista para melhor precisão', 'warning');
+      }
   
       const routeData = {
         id: editingRouteId,
         name: name,
         date: document.getElementById('routeDate').value,
-        driverId: document.getElementById('routeDriver').value,
+        driverId: document.getElementById('routeDriver').value || null,
         notes: document.getElementById('routeNotes').value,
         vehicle: document.getElementById('routeVehicle').value,
         plate: document.getElementById('routePlate').value,
         color: document.querySelector('input[name="routeColor"]:checked')?.value || 'default',
-        origin: { lat: parseFloat(lat), lng: parseFloat(lng), address: addr }
+        origin: {
+          lat: lat ? parseFloat(lat) : null,
+          lng: lng ? parseFloat(lng) : null,
+          address: addr
+        }
       };
   
-      await StorageManager.saveRoute(routeData);
-      showToast('Rota salva com sucesso!');
-      closeRouteModal();
-      renderRoutesList();
-      refreshDashboard();
-      if(activeRouteId === editingRouteId) loadRouteToMap(editingRouteId);
+      try {
+        await StorageManager.saveRoute(routeData);
+        showToast('Rota salva com sucesso!');
+        closeRouteModal();
+        renderRoutesList();
+        refreshDashboard();
+        if(activeRouteId === editingRouteId) loadRouteToMap(editingRouteId);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     });
   
     // === DELIVERY MODAL LOGIC ===
@@ -638,15 +660,19 @@
         lng: parseFloat(lng)
       };
   
-      await StorageManager.saveDelivery(deliveryData);
-      showToast('Parada salva com sucesso!');
-      closeDeliveryModal();
-      renderDeliveriesList();
-      refreshDashboard();
-      
-      // Update map if the route is active
-      if (activeRouteId === routeId) {
-        loadRouteToMap(routeId);
+      try {
+        await StorageManager.saveDelivery(deliveryData);
+        showToast('Parada salva com sucesso!');
+        closeDeliveryModal();
+        renderDeliveriesList();
+        refreshDashboard();
+        
+        // Update map if the route is active
+        if (activeRouteId === routeId) {
+          loadRouteToMap(routeId);
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
       }
     });
   
@@ -682,7 +708,7 @@
     closeModalDriver.addEventListener('click', closeDriverModal);
     cancelModalDriver.addEventListener('click', closeDriverModal);
   
-    saveDriverBtn.addEventListener('click', () => {
+    saveDriverBtn.addEventListener('click', async () => {
       const name = document.getElementById('driverName').value;
       if (!name) return showToast('Nome é obrigatório', 'error');
   
@@ -691,11 +717,15 @@
         name: name,
         phone: document.getElementById('driverPhone').value
       };
-      StorageManager.saveDriver(driverData);
-  
-      showToast('Motorista salvo com sucesso!');
-      closeDriverModal();
-      renderDriversList();
+
+      try {
+        await StorageManager.saveDriver(driverData);
+        showToast('Motorista salvo com sucesso!');
+        closeDriverModal();
+        renderDriversList();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     });
   
   
@@ -1301,7 +1331,7 @@
     document.getElementById('closeModalUser')?.addEventListener('click', closeUserModal);
     document.getElementById('cancelModalUser')?.addEventListener('click', closeUserModal);
 
-    document.getElementById('saveUser')?.addEventListener('click', () => {
+    document.getElementById('saveUser')?.addEventListener('click', async () => {
       const name = document.getElementById('userName').value;
       const userLogin = document.getElementById('userUsername').value;
       const pass = document.getElementById('userPassword').value;
@@ -1324,10 +1354,14 @@
         permissions: permissions
       };
       
-      StorageManager.saveUser(userData);
-      showToast('Usuário salvo com sucesso!');
-      closeUserModal();
-      renderUsersList();
+      try {
+        await StorageManager.saveUser(userData);
+        showToast('Usuário salvo com sucesso!');
+        closeUserModal();
+        renderUsersList();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     });
 
     window.openUserModalFromList = openUserModal;
