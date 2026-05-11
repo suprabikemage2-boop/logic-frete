@@ -51,7 +51,7 @@
         checkAuth();
         // Initialize Map again if needed
         setTimeout(() => {
-          if (MapService.map) MapService.map.invalidateSize();
+          if (MapService.map) MapService.map.resize();
         }, 100);
       } else {
         if (loginError) {
@@ -314,7 +314,7 @@
     });
   
     // === SIDEBAR COLLAPSE LOGIC ===
-    const btnCollapseSidebar = document.getElementById('btnCollapseSidebar');
+    // Note: btnCollapseSidebar already declared at line 121 — not redeclared here
     
     // Load state from localStorage
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -322,16 +322,8 @@
       sidebar.classList.add('collapsed');
     }
 
-    btnCollapseSidebar?.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
-      const collapsed = sidebar.classList.contains('collapsed');
-      localStorage.setItem('sidebarCollapsed', collapsed);
-      
-      // Trigger map resize after transition
-      setTimeout(() => {
-        if (MapService.map) MapService.map.invalidateSize();
-      }, 350); // Slightly more than 0.3s transition
-    });
+    // Desktop collapse is handled inside toggleMobileMenu().
+    // The btnCollapseSidebar listener is already registered at line 146.
 
     // === MAP CONTROLS ===
     document.getElementById('btnLocate')?.addEventListener('click', () => MapService.locateUser());

@@ -268,20 +268,27 @@
   .sidebar.collapsed {
     width: var(--sidebar-collapsed-width);
   }
-  
-  @media (max-width: 768px) {
-    .sidebar {
-      width: 100vw !important;
-      position: absolute;
-      left: 0;
-      top: 0;
-      z-index: 2000;
-    }
-    .map-area {
-      display: none; /* On mobile, only show sidebar if no map is needed */
-    }
+
+  .map-area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
   }
   
+  #map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
   .sidebar-header {
     height: var(--topbar-height);
     display: flex;
@@ -2093,53 +2100,7 @@
     border-radius: 0 var(--border-radius-sm) 0 0;
   }
 
-  /* ==========================================================================
-     LOGIN OVERLAY
-     ========================================================================== */
-  .login-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: var(--bg-dark);
-    display: none; /* Inicia escondido */
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    backdrop-filter: blur(10px);
-  }
-
-  .login-card {
-    background: var(--bg-panel);
-    padding: 40px;
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-lg);
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .login-logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 2rem;
-    color: var(--text-white);
-    margin-bottom: 10px;
-  }
-
-  .login-logo i {
-    color: var(--accent-primary);
-  }
-
-  .login-logo span {
-    font-weight: 800;
-  }
+/* Login Overlay placeholder removed from here - moved to end */
 
   .login-form {
     display: flex;
@@ -2723,3 +2684,154 @@
 .chart-bar-container:hover .chart-bar-value { opacity: 1; }
 .weekly-chart-labels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 12px; padding: 0 10px; }
 .weekly-chart-labels span { text-align: center; font-size: 0.65rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
+
+/* Error Message Animation */
+.login-error-message {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+}
+
+/* SMARTPHONE OPTIMIZATIONS (Max-width: 600px) */
+@media (max-width: 600px) {
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    height: 60px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+
+  .mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+    font-size: 1.1rem;
+  }
+
+  .mobile-logo i {
+    color: var(--accent-primary);
+    font-size: 1.4rem;
+  }
+
+  /* Adjust Main App Wrapper for Mobile Header */
+  #mainAppWrapper {
+    padding-top: 60px;
+    flex-direction: column !important;
+  }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px; /* Hidden by default */
+    width: 280px !important;
+    height: 100vh !important;
+    z-index: 2000 !important;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+    background: var(--bg-dark) !important;
+  }
+
+  .sidebar.mobile-active {
+    left: 0 !important;
+  }
+
+  /* Overlay when sidebar is open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.7);
+    z-index: 1999;
+    backdrop-filter: blur(4px);
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  .sidebar-header .collapse-btn {
+    display: block !important; /* Reuse for closing */
+  }
+
+  .logo-text, .nav-tab span {
+    display: block !important;
+  }
+
+  /* Main Dashboard Stats for Mobile */
+  .stats-grid-main {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .main-dashboard-view {
+    padding: 15px !important;
+  }
+
+  /* Map and Panels */
+  .map-area {
+    height: calc(100vh - 60px) !important;
+  }
+
+  #map {
+    height: 100% !important;
+    min-height: 300px;
+  }
+
+  .map-controls-overlay {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: calc(100% - 20px) !important;
+  }
+
+  /* Hide tabs that are too complex for mobile initially if needed */
+  /* .nav-tab[data-tab="calendar"] { display: none; } */
+}
+
+
+
+/* Login Overlay Styles */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(10px);
+}
+
+.login-card {
+  background: var(--bg-panel);
+  padding: 40px;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+

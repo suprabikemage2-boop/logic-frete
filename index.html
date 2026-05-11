@@ -54,6 +54,14 @@
 
   <!-- Main App Wrapper (To hide before login) -->
   <div id="mainAppWrapper" style="display: none; height: 100vh;">
+  
+  <!-- Mobile Header (Visible only on mobile) -->
+  <header class="mobile-header">
+    <button class="btn-icon" id="btnOpenSidebar">
+      <i class="ri-menu-line"></i>
+    </button>
+    </header>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
   <!-- ===================== SIDEBAR ===================== -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -66,8 +74,8 @@
           <span class="logo-subtitle">FRETE</span>
         </div>
       </div>
-      <button class="btn-icon collapse-btn" id="btnCollapseSidebar" title="Recolher Sidebar">
-        <i class="ri-menu-fold-line"></i>
+      <button class="btn-icon collapse-btn" id="btnCollapseSidebar" title="Fechar Menu">
+        <i class="ri-close-line"></i>
       </button>
     </div>
 
@@ -621,8 +629,8 @@
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <script src="data.js?v=1.1"></script>
-  <script src="maps.js?v=1.1"></script>
-  <script src="app.js?v=1.1"></script>
+  <script src="data.js?v=1.2"></script>
+  <script src="maps.js?v=1.2"></script>
+  <script src="app.js?v=1.2"></script>
 </body>
 </html>
