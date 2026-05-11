@@ -31,6 +31,8 @@
       }
     }
 
+    const loginError = document.getElementById('loginError');
+
     loginForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const user = document.getElementById('loginUser').value;
@@ -38,6 +40,7 @@
       
       const success = await StorageManager.login(user, pass);
       if (success) {
+        if (loginError) loginError.style.display = 'none';
         showToast('Login realizado com sucesso!');
         loginForm.reset();
         checkAuth();
@@ -46,8 +49,22 @@
           if (MapService.map) MapService.map.invalidateSize();
         }, 100);
       } else {
+        if (loginError) {
+          loginError.style.display = 'block';
+          // Force a reflow to restart animation if it's already visible
+          loginError.style.animation = 'none';
+          loginError.offsetHeight; /* trigger reflow */
+          loginError.style.animation = null; 
+        }
         showToast('Usuário ou senha inválidos!', 'error');
       }
+    });
+
+    // Clear error message when user starts typing
+    ['loginUser', 'loginPass'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', () => {
+        if (loginError) loginError.style.display = 'none';
+      });
     });
 
     btnLogout?.addEventListener('click', () => {
