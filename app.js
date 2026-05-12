@@ -1088,8 +1088,8 @@
           </tbody>
         </table>
 
-        <div style="margin-top:40px; border-top:1px solid #ccc; padding-top:10px; font-size:10px; color:#888; text-align:center;">
-          Logic Frete - Sistema de Gestão Logística
+        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:10px; font-size:9px; color:#999; text-align:center;">
+          Logic Frete — Sistema de Gestão Logística
         </div>
       `;
 
