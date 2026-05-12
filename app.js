@@ -298,12 +298,28 @@
           'map': 'map'
         };
         showMainView(viewMap[tab.dataset.tab]);
-        
-        // Force map resize
-        if (tab.dataset.tab === 'map' && MapService.map) {
-          setTimeout(() => MapService.map.resize(), 100);
-        }
       });
+    });
+
+    // === KEYBOARD NAVIGATION ===
+    document.addEventListener('keydown', (e) => {
+      const isModalOpen = document.querySelector('.modal-overlay.active, .confirm-dialog.active');
+      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+      if (isModalOpen || isTyping) return;
+
+      const activeTab = document.querySelector('.nav-tab.active');
+      if (!activeTab) return;
+
+      const tabs = Array.from(document.querySelectorAll('.nav-tab:not([style*="display: none"])'));
+      const currentIndex = tabs.indexOf(activeTab);
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        const nextIndex = (currentIndex + 1) % tabs.length;
+        tabs[nextIndex].click();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        tabs[prevIndex].click();
+      }
     });
 
     // === MOBILE BOTTOM NAVIGATION ===
@@ -419,7 +435,7 @@
         
         debounceTimer = setTimeout(async () => {
           const results = await MapService.searchAddress(query);
-          suggestions.innerHTML = '';
+          suggestions.innerHTML = ';
           
           if (results.length === 0) {
             suggestions.innerHTML = '<div class="suggestion-item"><span class="suggestion-text">Nenhum endereço encontrado</span></div>';
@@ -443,7 +459,7 @@
                 if (inputId === 'addressSearchInput') {
                   // MapLibre uses flyTo and [lng, lat]
                   MapService.map.flyTo({ center: [res.lng, res.lat], zoom: 16 });
-                  const marker = MapService.createMarker(res.lat, res.lng, '', 'planned');
+                  const marker = MapService.createMarker(res.lat, res.lng, ', 'planned');
                   marker.setPopup(new maplibregl.Popup({ offset: 25 }).setText(res.address)).togglePopup();
                 }
               });
@@ -467,14 +483,14 @@
     setupAddressSearch('deliveryAddressInput', 'deliverySuggestions', 'deliveryLat', 'deliveryLng', 'deliveryAddr');
   
     document.getElementById('clearSearch').addEventListener('click', () => {
-      document.getElementById('addressSearchInput').value = '';
+      document.getElementById('addressSearchInput').value = ';
       MapService.clearMap();
     });
 
     // CPF/CNPJ Mask & Limit
     const deliveryCpfInput = document.getElementById('deliveryCpf');
     deliveryCpfInput?.addEventListener('input', (e) => {
-      let v = e.target.value.replace(/\D/g, ''); // Remove non-digits
+      let v = e.target.value.replace(/\D/g, '); // Remove non-digits
       if (v.length > 14) v = v.slice(0, 14); // Limit to 14 numbers (CNPJ max)
       
       if (v.length <= 11) {
@@ -525,17 +541,17 @@
         const route = StorageManager.getRoute(routeId);
         if (!route) return closeRouteModal();
         
-        document.getElementById('routeName').value = route.name || '';
-        document.getElementById('routeDate').value = route.date || '';
-        document.getElementById('routeDriver').value = route.driverId || '';
-        document.getElementById('routeNotes').value = route.notes || '';
-        document.getElementById('routeVehicle').value = route.vehicle || '';
-        document.getElementById('routePlate').value = route.plate || '';
+        document.getElementById('routeName').value = route.name || ';
+        document.getElementById('routeDate').value = route.date || ';
+        document.getElementById('routeDriver').value = route.driverId || ';
+        document.getElementById('routeNotes').value = route.notes || ';
+        document.getElementById('routeVehicle').value = route.vehicle || ';
+        document.getElementById('routePlate').value = route.plate || ';
         if (route.origin) {
-          document.getElementById('routeOriginInput').value = route.origin.address || '';
-          document.getElementById('routeOriginLat').value = route.origin.lat || '';
-          document.getElementById('routeOriginLng').value = route.origin.lng || '';
-          document.getElementById('routeOriginAddr').value = route.origin.address || '';
+          document.getElementById('routeOriginInput').value = route.origin.address || ';
+          document.getElementById('routeOriginLat').value = route.origin.lat || ';
+          document.getElementById('routeOriginLng').value = route.origin.lng || ';
+          document.getElementById('routeOriginAddr').value = route.origin.address || ';
         }
         
         const colorVal = route.color || 'default';
@@ -544,16 +560,16 @@
         });
       } else {
         title.innerText = 'Nova Rota';
-        document.getElementById('routeName').value = '';
+        document.getElementById('routeName').value = ';
         document.getElementById('routeDate').value = getLocalISODate();
-        document.getElementById('routeDriver').value = '';
-        document.getElementById('routeNotes').value = '';
-        document.getElementById('routeVehicle').value = '';
-        document.getElementById('routePlate').value = '';
-        document.getElementById('routeOriginInput').value = '';
-        document.getElementById('routeOriginLat').value = '';
-        document.getElementById('routeOriginLng').value = '';
-        document.getElementById('routeOriginAddr').value = '';
+        document.getElementById('routeDriver').value = ';
+        document.getElementById('routeNotes').value = ';
+        document.getElementById('routeVehicle').value = ';
+        document.getElementById('routePlate').value = ';
+        document.getElementById('routeOriginInput').value = ';
+        document.getElementById('routeOriginLat').value = ';
+        document.getElementById('routeOriginLng').value = ';
+        document.getElementById('routeOriginAddr').value = ';
         
         document.querySelectorAll('input[name="routeColor"]').forEach(input => {
           input.checked = input.value === 'default';
@@ -653,28 +669,28 @@
         
         routeSelect.value = d.routeId;
         document.getElementById('deliveryRecipient').value = d.recipient;
-        document.getElementById('deliveryCpf').value = d.cpf || '';
-        document.getElementById('deliveryPhone').value = d.phone || '';
+        document.getElementById('deliveryCpf').value = d.cpf || ';
+        document.getElementById('deliveryPhone').value = d.phone || ';
         document.getElementById('deliveryOrder').value = d.order || 1;
         document.getElementById('deliveryStatus').value = d.status || 'pending';
-        document.getElementById('deliveryNotes').value = d.notes || '';
+        document.getElementById('deliveryNotes').value = d.notes || ';
         
-        document.getElementById('deliveryAddressInput').value = d.address || '';
-        document.getElementById('deliveryLat').value = d.lat || '';
-        document.getElementById('deliveryLng').value = d.lng || '';
-        document.getElementById('deliveryAddr').value = d.address || '';
+        document.getElementById('deliveryAddressInput').value = d.address || ';
+        document.getElementById('deliveryLat').value = d.lat || ';
+        document.getElementById('deliveryLng').value = d.lng || ';
+        document.getElementById('deliveryAddr').value = d.address || ';
       } else {
         title.innerText = 'Nova Parada';
-        if(!preSelectRouteId) routeSelect.value = '';
-        document.getElementById('deliveryRecipient').value = '';
-        document.getElementById('deliveryCpf').value = '';
-        document.getElementById('deliveryPhone').value = '';
+        if(!preSelectRouteId) routeSelect.value = ';
+        document.getElementById('deliveryRecipient').value = ';
+        document.getElementById('deliveryCpf').value = ';
+        document.getElementById('deliveryPhone').value = ';
         document.getElementById('deliveryStatus').value = 'pending';
-        document.getElementById('deliveryNotes').value = '';
-        document.getElementById('deliveryAddressInput').value = '';
-        document.getElementById('deliveryLat').value = '';
-        document.getElementById('deliveryLng').value = '';
-        document.getElementById('deliveryAddr').value = '';
+        document.getElementById('deliveryNotes').value = ';
+        document.getElementById('deliveryAddressInput').value = ';
+        document.getElementById('deliveryLat').value = ';
+        document.getElementById('deliveryLng').value = ';
+        document.getElementById('deliveryAddr').value = ';
       }
 
       // Permissions check for notes
@@ -752,12 +768,12 @@
       if (driverId) {
         title.innerText = 'Editar Motorista';
         const driver = StorageManager.getDriver(editingDriverId);
-        document.getElementById('driverName').value = driver.name || '';
-        document.getElementById('driverPhone').value = driver.phone || '';
+        document.getElementById('driverName').value = driver.name || ';
+        document.getElementById('driverPhone').value = driver.phone || ';
       } else {
         title.innerText = 'Novo Motorista';
-        document.getElementById('driverName').value = '';
-        document.getElementById('driverPhone').value = '';
+        document.getElementById('driverName').value = ';
+        document.getElementById('driverPhone').value = ';
       }
       modalDriver.classList.add('active');
     }
@@ -819,7 +835,7 @@
   
       // Search filter
       const searchInput = document.getElementById('searchRoutesMain');
-      const q = searchInput ? searchInput.value.toLowerCase() : '';
+      const q = searchInput ? searchInput.value.toLowerCase() : ';
       if (q) {
         filtered = filtered.filter(r => r.name.toLowerCase().includes(q));
       }
@@ -834,18 +850,18 @@
         return;
       }
   
-      list.innerHTML = '';
+      list.innerHTML = ';
       filtered.forEach(r => {
         const stops = StorageManager.getDeliveriesByRoute(r.id);
         const dCount = stops.length;
         const driver = r.driverId ? (StorageManager.getDrivers().find(d => d.id === r.driverId) || StorageManager.getUsers().find(u => u.id === r.driverId)) : null;
         const driverDisplay = driver ? `${driver.name}${r.vehicle ? ` • ${r.vehicle}` : ''}` : 'Sem motorista';
         const st = statusMap[r.status] || statusMap['planned'];
-        const colorClass = r.color && r.color !== 'default' ? `card-${r.color}` : '';
+        const colorClass = r.color && r.color !== 'default' ? `card-${r.color}` : ';
         
         // Stops preview string (Addresses)
         const stopsPreview = stops.length > 0 
-          ? stops.slice(0, 3).map(s => s.address ? s.address.split(',')[0] : 'S/ Ref').join(' • ') + (stops.length > 3 ? '...' : '')
+          ? stops.slice(0, 3).map(s => s.address ? s.address.split(',')[0] : 'S/ Ref').join(' • ') + (stops.length > 3 ? '...' : ')
           : 'Nenhuma parada';
   
         const div = document.createElement('div');
@@ -866,7 +882,7 @@
 
         let stopsHtml = stops.map((s, i) => `
           <div class="stop-detail-item" 
-               draggable="${canReorder ? 'true' : 'false'}" 
+               draggable="${canReorder ? 'true' : 'false''}" 
                ${canReorder ? `
                ondragstart="window.handleStopDragStart(event, '${s.id}')"
                ondragend="window.handleStopDragEnd(event)"
@@ -874,58 +890,36 @@
             <div class="stop-detail-index">${i + 1}</div>
             <div class="stop-detail-info">
               <span class="stop-detail-name">${s.recipient}</span>
-              <span class="stop-detail-addr">${s.address || 'Sem endereço'}</span>
+              <span class="stop-detail-addr">${s.address || 'Sem endereço''}</span>
             </div>
             <div class="stop-actions-small" style="${canEdit ? '' : 'display:none'}">
               <button class="btn-icon-xs" title="Editar Parada" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${s.id}')"><i class="ri-edit-2-line"></i></button>
               <button class="btn-icon-xs" title="Remover Parada" onclick="event.stopPropagation(); window.deleteDeliveryFromList('${s.id}')"><i class="ri-delete-bin-line"></i></button>
             </div>
           </div>
-        `).join('');
+        `).join(');
 
         if (stops.length === 0) {
           stopsHtml = '<p class="text-muted" style="font-size:0.8rem; padding: 10px 0;">Nenhuma parada cadastrada.</p>';
         }
 
         div.innerHTML = `
-          <div class="item-header">
-            <span class="item-title">${r.name}</span>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <span class="badge ${st.class}">${st.label}</span>
-              ${canEdit ? `
-              <button class="btn-icon-xs" title="Adicionar Parada" onclick="event.stopPropagation(); window.openDeliveryModalForRoute('${r.id}')" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--accent-primary);">
-                <i class="ri-add-line"></i>
-              </button>` : ''}
-            </div>
+          <div class="task-header">
+            <div class="task-indicator ${d.status === 'delivered' ? 'delivered' : ''}"></div>
+            <div class="task-title">${(d.recipient || 'SEM NOME').toUpperCase()}</div>
           </div>
-          <div class="item-meta">
-            <span><i class="ri-calendar-line"></i> ${formatDate(r.date)}</span>
-            <span><i class="ri-map-pin-line"></i> ${dCount} paradas</span>
-            <span><i class="ri-steering-2-line"></i> ${driverDisplay}</span>
+          <div class="task-body">
+            <div class="task-row"><span class="task-label">NOME:</span> <span class="task-value">${d.recipient}</span></div>
+            <div class="task-row"><span class="task-label">CPF:</span> <span class="task-value">${d.cpf || '-'}</span></div>
+            <div class="task-row"><span class="task-label">TEL:</span> <span class="task-value">${d.phone || '-'}</span></div>
+            <div class="task-row"><span class="task-label">END:</span> <span class="task-value">${d.address || '-'}</span></div>
+            ${d.notes ? `<div class="task-notes">${d.notes}</div>` : ''}
           </div>
-          <div class="item-preview">
-            <i class="ri-list-check"></i> ${stopsPreview}
-            ${r.notes ? `<span class="preview-notes"><i class="ri-chat-4-line"></i> ${r.notes}</span>` : ''}
-          </div>
-          <div class="item-details">
-            <div style="font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 8px; font-weight:600;">PARADAS NA ROTA ${canReorder ? '(Arraste para mover)' : ''}:</div>
-            <div class="stops-detail-list" 
-                 id="drop-target-${r.id}"
-                 ${canReorder ? `
-                 ondragover="window.handleStopDragOver(event)"
-                 ondragenter="window.handleStopDragEnter(event)"
-                 ondragleave="window.handleStopDragLeave(event)"
-                 ondrop="window.handleStopDrop(event, '${r.id}')"` : ''}>
-              ${stopsHtml}
-            </div>
+          <div class="task-footer">
+            <div class="task-date"><i class="ri-calendar-line"></i> ${route ? formatDate(route.date) : '-'}</div>
             <div class="details-actions">
-              ${r.status === 'planned' && canEdit ? `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'active')"><i class="ri-play-circle-line"></i> Iniciar</button>` : ''}
-              ${r.status === 'active' && canEdit ? `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'done')"><i class="ri-checkbox-circle-line"></i> Concluir</button>` : ''}
-              ${r.status === 'done' && canEdit ? `<button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'active')"><i class="ri-restart-line"></i> Reativar</button>` : ''}
-              <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.printRoute('${r.id}')"><i class="ri-printer-line"></i> Imprimir</button>
-              ${canEdit ? `<button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.openRouteModalFromList('${r.id}')"><i class="ri-edit-line"></i> Editar</button>` : ''}
-              <button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.viewOnMap('${r.id}')"><i class="ri-map-2-line"></i> Mapa</button>
-              ${canEdit ? `<button class="btn-danger btn-xs" onclick="event.stopPropagation(); window.deleteRouteFromList('${r.id}')" title="Excluir Rota"><i class="ri-delete-bin-line"></i></button>` : ''}
+              ${window.appPermissions?.canEditRoute ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
             </div>
           </div>
         `;
@@ -1082,10 +1076,10 @@
             <span style="font-size:10px; color:#666">CPF: ${s.cpf || '-'}</span>
           </td>
           <td>${s.phone || '-'}</td>
-          <td>${s.address || 'Sem endereço'}</td>
+          <td>${s.address || 'Sem endereço''}</td>
           <td><div class="print-obs">${s.notes || '-'}</div></td>
         </tr>
-      `).join('');
+      `).join(');
 
       printArea.innerHTML = `
         <div class="print-header">
@@ -1104,13 +1098,13 @@
             <span class="print-meta-label">Data:</span> ${formatDate(route.date)}
           </div>
           <div class="print-meta-item">
-            <span class="print-meta-label">Motorista:</span> ${driver ? driver.name : 'Não atribuído'}
+            <span class="print-meta-label">Motorista:</span> ${driver ? driver.name : 'Não atribuído''}
           </div>
           <div class="print-meta-item">
             <span class="print-meta-label">Total Paradas:</span> ${stops.length}
           </div>
           <div class="print-meta-item" style="grid-column: 1 / -1">
-            <span class="print-meta-label">Observações da Rota:</span> ${route.notes || 'Nenhuma'}
+            <span class="print-meta-label">Observações da Rota:</span> ${route.notes || 'Nenhuma''}
           </div>
         </div>
 
@@ -1155,7 +1149,7 @@
       const routes = StorageManager.getRoutes();
       
       const searchInput = document.getElementById('searchDeliveriesMain');
-      const q = searchInput ? searchInput.value.toLowerCase() : '';
+      const q = searchInput ? searchInput.value.toLowerCase() : ';
       let filtered = deliveries;
       if (q) {
         filtered = deliveries.filter(d => 
@@ -1174,61 +1168,32 @@
         return;
       }
   
-      list.innerHTML = '';
+      list.innerHTML = ';
       filtered.forEach(d => {
         const route = routes.find(r => r.id === d.routeId);
         const routeName = route ? route.name : 'Rota desconhecida';
         const st = statusMap[d.status] || statusMap['pending'];
   
         const div = document.createElement('div');
-        div.className = 'list-item';
+        div.className = 'task-card list-item';
         div.innerHTML = `
-          <div class="item-header">
-            <span class="item-title">${d.recipient}</span>
-            <span class="badge ${st.class}">${st.label}</span>
+          <div class="task-header">
+            <div class="task-indicator ${d.status === 'delivered' ? 'delivered' : ''}"></div>
+            <div class="task-title">${(d.recipient || 'SEM NOME').toUpperCase()}</div>
           </div>
-          <div class="item-meta">
-            <span><i class="ri-route-line"></i> ${routeName} (Parada ${d.order})</span>
-            ${d.phone ? `<span><i class="ri-phone-line"></i> ${d.phone}</span>` : ''}
+          <div class="task-body">
+            <div class="task-row"><span class="task-label">NOME:</span> <span class="task-value">${d.recipient}</span></div>
+            <div class="task-row"><span class="task-label">CPF:</span> <span class="task-value">${d.cpf || '-'}</span></div>
+            <div class="task-row"><span class="task-label">TEL:</span> <span class="task-value">${d.phone || '-'}</span></div>
+            <div class="task-row"><span class="task-label">END:</span> <span class="task-value">${d.address || '-'}</span></div>
+            ${d.notes ? `<div class="task-notes">${d.notes}</div>` : ''}
           </div>
-          <div class="item-preview">
-            <i class="ri-map-pin-2-line"></i> ${d.address || 'Sem endereço'}
-          </div>
-          <div class="item-details">
-            <div style="font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 8px; font-weight:600;">DETALHES DA ENTREGA:</div>
-            <div class="history-list">
-              <div class="history-route-item">
-                <div class="history-route-info">
-                  <span class="history-route-name">Endereço Completo</span>
-                  <span class="history-route-date">${d.address || '-'}</span>
-                </div>
-              </div>
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div class="history-route-item">
-                  <div class="history-route-info">
-                    <span class="history-route-name">CPF/CNPJ</span>
-                    <span class="history-route-date">${d.cpf || '-'}</span>
-                  </div>
-                </div>
-                <div class="history-route-item">
-                  <div class="history-route-info">
-                    <span class="history-route-name">Telefone</span>
-                    <span class="history-route-date">${d.phone || '-'}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="history-route-item">
-                <div class="history-route-info">
-                  <span class="history-route-name">Observações</span>
-                  <span class="history-route-date">${d.notes || 'Nenhuma'}</span>
-                </div>
-              </div>
+          <div class="task-footer">
+            <div class="task-date"><i class="ri-calendar-line"></i> ${route ? formatDate(route.date) : '-'}</div>
+            <div class="details-actions">
+              ${window.appPermissions?.canEditRoute ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
             </div>
-            <div class="details-actions" style="margin-top:10px">
-              ${window.appPermissions?.canEditRoute ? `<button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')"><i class="ri-edit-line"></i> Editar</button>` : ''}
-              <button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')"><i class="ri-map-2-line"></i> Mapa</button>
-            </div>
-
           </div>
         `;
 
@@ -1261,7 +1226,7 @@
         return;
       }
   
-      list.innerHTML = '';
+      list.innerHTML = ';
       combinedDrivers.forEach(d => {
         const routes = StorageManager.getRoutes().filter(r => r.driverId === d.id).sort((a, b) => new Date(b.date) - new Date(a.date));
         const routeCount = routes.length;
@@ -1276,7 +1241,7 @@
             <div class="history-route-item" onclick="event.stopPropagation(); window.viewOnMapReadOnly('${r.id}')">
               <div class="history-route-info">
                 <span class="history-route-name">${r.name}</span>
-                <span class="history-route-date"><i class="ri-calendar-event-line"></i> ${formatDate(r.date)} • <i class="ri-map-pin-line"></i> ${stopsCount} paradas • <i class="ri-map-2-line"></i> ${r.distanceKm || '0'} km</span>
+                <span class="history-route-date"><i class="ri-calendar-event-line"></i> ${formatDate(r.date)} • <i class="ri-map-pin-line"></i> ${stopsCount} paradas • <i class="ri-map-2-line"></i> ${r.distanceKm || '0''} km</span>
               </div>
               <div style="display:flex; align-items:center; gap:10px">
                 <span class="badge ${st.class}" style="font-size:0.5rem">${st.label}</span>
@@ -1284,51 +1249,34 @@
               </div>
             </div>
           `;
-        }).join('');
+        }).join(');
 
         if (routes.length === 0) {
           historyHtml = '<p class="text-muted" style="font-size:0.8rem; padding: 10px 0;">Nenhuma rota realizada ainda.</p>';
         }
 
-        const userTag = d.isUser ? `<span class="badge active" style="font-size:0.6rem; margin-left:8px;">USUÁRIO</span>` : '';
+        const userTag = d.isUser ? `<span class="badge active" style="font-size:0.6rem; margin-left:8px;">USUÁRIO</span>` : ';
 
         const div = document.createElement('div');
-        div.className = 'list-item';
+        div.className = 'task-card list-item';
         div.innerHTML = `
-          <div class="item-header">
-            <span class="item-title"><i class="ri-steering-2-fill" style="color:var(--accent-primary)"></i> ${d.name} ${userTag}</span>
-            <div>
-              ${(window.appPermissions?.isMaster || window.appPermissions?.isGerente) ? `
-                <button class="btn-icon" onclick="event.stopPropagation(); ${d.isUser ? `window.openUserModalFromList('${d.id}')` : `window.openDriverModalFromList('${d.id}')`}" title="Editar"><i class="ri-edit-line"></i></button>
-                <button class="btn-icon" onclick="event.stopPropagation(); ${d.isUser ? `window.deleteUserFromList('${d.id}')` : `window.deleteDriverFromList('${d.id}')`}" title="Excluir"><i class="ri-delete-bin-line" style="color:var(--accent-danger)"></i></button>
-              ` : ''}
+          <div class="task-header">
+            <div class="task-indicator ${d.status === 'delivered' ? 'delivered' : ''}"></div>
+            <div class="task-title">${(d.recipient || 'SEM NOME').toUpperCase()}</div>
+          </div>
+          <div class="task-body">
+            <div class="task-row"><span class="task-label">NOME:</span> <span class="task-value">${d.recipient}</span></div>
+            <div class="task-row"><span class="task-label">CPF:</span> <span class="task-value">${d.cpf || '-'}</span></div>
+            <div class="task-row"><span class="task-label">TEL:</span> <span class="task-value">${d.phone || '-'}</span></div>
+            <div class="task-row"><span class="task-label">END:</span> <span class="task-value">${d.address || '-'}</span></div>
+            ${d.notes ? `<div class="task-notes">${d.notes}</div>` : ''}
+          </div>
+          <div class="task-footer">
+            <div class="task-date"><i class="ri-calendar-line"></i> ${route ? formatDate(route.date) : '-'}</div>
+            <div class="details-actions">
+              ${window.appPermissions?.canEditRoute ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
             </div>
-          </div>
-          <div class="item-meta">
-            <span><i class="ri-route-line"></i> ${routeCount} rotas</span>
-            <span><i class="ri-map-pin-range-line"></i> ${totalKm} km total</span>
-            <span><i class="ri-phone-line"></i> ${d.phone || '-'}</span>
-          </div>
-          <div class="item-preview">
-            <i class="ri-truck-line"></i> ${d.vehicle || 'Sem veículo'} • ${d.plate || '-'}
-          </div>
-          <div class="item-details">
-             <div style="display:grid; grid-template-columns: 1fr; gap:15px">
-                <div>
-                  <div style="font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 8px; font-weight:600;">DETALHES DO MOTORISTA:</div>
-                  <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; font-size: 0.8rem;">
-                    <p style="margin-bottom:5px"><strong>Status:</strong> Ativo</p>
-                    <p style="margin-bottom:5px"><strong>Total Percorrido:</strong> ${totalKm} quilômetros</p>
-                    ${d.isUser ? `<p><strong>Login no Sistema:</strong> ${d.username}</p>` : ''}
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 8px; font-weight:600;">HISTÓRICO RECENTE:</div>
-                  <div class="history-list">
-                    ${historyHtml}
-                  </div>
-                </div>
-             </div>
           </div>
         `;
 
@@ -1362,9 +1310,9 @@
       if (userId) {
         title.innerText = 'Editar Usuário';
         const user = StorageManager.getUsers().find(u => u.id === userId);
-        document.getElementById('userName').value = user.name || '';
-        document.getElementById('userUsername').value = user.username || '';
-        document.getElementById('userPassword').value = user.password || '';
+        document.getElementById('userName').value = user.name || ';
+        document.getElementById('userUsername').value = user.username || ';
+        document.getElementById('userPassword').value = user.password || ';
         document.getElementById('userRole').value = user.role || 'Motorista';
         
         const perms = user.permissions || [];
@@ -1374,9 +1322,9 @@
         document.getElementById('perm_edit_notes').checked = perms.includes('edit_notes');
       } else {
         title.innerText = 'Novo Usuário';
-        document.getElementById('userName').value = '';
-        document.getElementById('userUsername').value = '';
-        document.getElementById('userPassword').value = '';
+        document.getElementById('userName').value = ';
+        document.getElementById('userUsername').value = ';
+        document.getElementById('userPassword').value = ';
         document.getElementById('userRole').value = 'Motorista';
         
         document.getElementById('perm_view_route').checked = true;
@@ -1450,21 +1398,28 @@
         return;
       }
 
-      list.innerHTML = '';
+      list.innerHTML = ';
       users.forEach(u => {
         const div = document.createElement('div');
-        div.className = 'list-item';
+        div.className = 'task-card list-item';
         div.innerHTML = `
-          <div class="item-header">
-            <span class="item-title"><i class="ri-shield-user-fill" style="color:var(--accent-primary)"></i> ${u.name}</span>
-            <div>
-              <button class="btn-icon" onclick="event.stopPropagation(); window.openUserModalFromList('${u.id}')" title="Editar"><i class="ri-edit-line"></i></button>
-              <button class="btn-icon" onclick="event.stopPropagation(); window.deleteUserFromList('${u.id}')" title="Excluir"><i class="ri-delete-bin-line" style="color:var(--accent-danger)"></i></button>
-            </div>
+          <div class="task-header">
+            <div class="task-indicator ${d.status === 'delivered' ? 'delivered' : ''}"></div>
+            <div class="task-title">${(d.recipient || 'SEM NOME').toUpperCase()}</div>
           </div>
-          <div class="item-meta">
-            <span><i class="ri-user-settings-line"></i> Login: ${u.username}</span>
-            <span><i class="ri-medal-line"></i> Nível: ${u.role}</span>
+          <div class="task-body">
+            <div class="task-row"><span class="task-label">NOME:</span> <span class="task-value">${d.recipient}</span></div>
+            <div class="task-row"><span class="task-label">CPF:</span> <span class="task-value">${d.cpf || '-'}</span></div>
+            <div class="task-row"><span class="task-label">TEL:</span> <span class="task-value">${d.phone || '-'}</span></div>
+            <div class="task-row"><span class="task-label">END:</span> <span class="task-value">${d.address || '-'}</span></div>
+            ${d.notes ? `<div class="task-notes">${d.notes}</div>` : ''}
+          </div>
+          <div class="task-footer">
+            <div class="task-date"><i class="ri-calendar-line"></i> ${route ? formatDate(route.date) : '-'}</div>
+            <div class="details-actions">
+              ${window.appPermissions?.canEditRoute ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
+            </div>
           </div>
         `;
         list.appendChild(div);
@@ -1560,21 +1515,31 @@
           if (activeRoutes.length === 0) {
             list.innerHTML = `<div class="empty-state" style="padding: 20px"><i class="ri-route-line"></i><p>Nenhuma rota para hoje</p></div>`;
           } else {
-            list.innerHTML = '';
+            list.innerHTML = ';
             activeRoutes.forEach(r => {
               const st = statusMap[r.status] || statusMap['planned'];
               const div = document.createElement('div');
-              div.className = 'list-item';
+              div.className = 'task-card list-item';
               div.innerHTML = `
-                <div class="item-header">
-                  <span class="item-title">${r.name}</span>
-                  <span class="badge ${st.class}" style="font-size:0.6rem">${st.label}</span>
-                </div>
-                <div class="item-meta">
-                   <span><i class="ri-map-pin-line"></i> ${StorageManager.getDeliveriesByRoute(r.id).length} paradas</span>
-                   <span><i class="ri-map-2-line"></i> ${r.distanceKm || '0'} km</span>
-                </div>
-              `;
+          <div class="task-header">
+            <div class="task-indicator ${d.status === 'delivered' ? 'delivered' : ''}"></div>
+            <div class="task-title">${(d.recipient || 'SEM NOME').toUpperCase()}</div>
+          </div>
+          <div class="task-body">
+            <div class="task-row"><span class="task-label">NOME:</span> <span class="task-value">${d.recipient}</span></div>
+            <div class="task-row"><span class="task-label">CPF:</span> <span class="task-value">${d.cpf || '-'}</span></div>
+            <div class="task-row"><span class="task-label">TEL:</span> <span class="task-value">${d.phone || '-'}</span></div>
+            <div class="task-row"><span class="task-label">END:</span> <span class="task-value">${d.address || '-'}</span></div>
+            ${d.notes ? `<div class="task-notes">${d.notes}</div>` : ''}
+          </div>
+          <div class="task-footer">
+            <div class="task-date"><i class="ri-calendar-line"></i> ${route ? formatDate(route.date) : '-'}</div>
+            <div class="details-actions">
+              ${window.appPermissions?.canEditRoute ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
+            </div>
+          </div>
+        `;
               div.addEventListener('click', () => {
                 // Navigate to Calendar and highlight the day
                 const tabCalendar = document.getElementById('tab-calendar');
@@ -1635,7 +1600,7 @@
             <div class="chart-bar" style="height: ${height}%"></div>
           </div>
         `;
-      }).join('');
+      }).join(');
     }
   
     // === ROUTE MAPPING AND DETAIL PANEL ===
@@ -1701,7 +1666,7 @@
           <div class="stop-marker"><i class="ri-map-pin-user-fill"></i></div>
           <div class="stop-info">
             <div class="stop-title">Partida (Origem)</div>
-            <div class="stop-address" title="${route.origin?.address}">${route.origin?.address || 'Sem endereço'}</div>
+            <div class="stop-address" title="${route.origin?.address}">${route.origin?.address || 'Sem endereço''}</div>
           </div>
         </li>
       `;
@@ -1709,16 +1674,25 @@
       stops.forEach((stop, i) => {
         const dst = statusMap[stop.status];
         const li = document.createElement('li');
-        li.className = 'stop-item';
+        li.className = 'task-card stop-item';
         li.innerHTML = `
-          <div class="stop-marker" style="${stop.status==='delivered'?'background:var(--text-muted);border-color:var(--text-muted)':''}">${i + 1}</div>
-          <div class="stop-info">
-            <div class="stop-title">${stop.recipient} <span class="badge ${dst.class}" style="font-size:0.5rem; margin-left:5px">${dst.label}</span></div>
-            <div class="stop-address" title="${stop.address}">${stop.address || 'Sem endereço'}</div>
+          <div class="task-header">
+            <div class="task-indicator ${stop.status === 'delivered' ? 'delivered' : ''}"></div>
+            <div class="task-title">${(stop.recipient || 'SEM NOME').toUpperCase()}</div>
           </div>
-          <div class="stop-actions" style="${canEdit ? '' : 'display:none'}">
-            <button title="Editar" onclick="window.openDeliveryModalFromMap('${stop.id}')"><i class="ri-edit-2-line"></i></button>
-            <button title="Excluir" onclick="window.deleteDeliveryFromMap('${stop.id}')"><i class="ri-delete-bin-line"></i></button>
+          <div class="task-body">
+            <div class="task-row"><span class="task-label">NOME:</span> <span class="task-value">${stop.recipient}</span></div>
+            <div class="task-row"><span class="task-label">CPF:</span> <span class="task-value">${stop.cpf || '-'}</span></div>
+            <div class="task-row"><span class="task-label">TEL:</span> <span class="task-value">${stop.phone || '-'}</span></div>
+            <div class="task-row"><span class="task-label">END:</span> <span class="task-value">${stop.address || '-'}</span></div>
+            ${stop.notes ? `<div class="task-notes">${stop.notes}</div>` : ''}
+          </div>
+          <div class="task-footer">
+            <div class="task-date">PARADA ${i + 1}</div>
+            <div class="stop-actions" style="${canEdit ? '' : 'display:none'}">
+              <button class="btn-icon-xs" title="Editar" onclick="window.openDeliveryModalFromMap('${stop.id}')"><i class="ri-edit-2-line"></i></button>
+              <button class="btn-icon-xs" title="Excluir" onclick="window.deleteDeliveryFromMap('${stop.id}')"><i class="ri-delete-bin-line"></i></button>
+            </div>
           </div>
         `;
         stopsList.appendChild(li);
@@ -1912,7 +1886,7 @@
       const options = { month: 'short', day: 'numeric' };
       weekDisplay.innerText = `${startOfWeek.toLocaleDateString('pt-BR', options)} - ${endOfWeek.toLocaleDateString('pt-BR', options)} (${startOfWeek.getFullYear()})`;
 
-      kanban.innerHTML = '';
+      kanban.innerHTML = ';
       const allRoutes = StorageManager.getRoutes();
 
       // Create 7 columns for the week
@@ -1962,7 +1936,7 @@
               <span class="calendar-route-title">${r.name}</span>
               <div class="calendar-route-info">
                 <span><i class="ri-map-pin-line"></i> ${StorageManager.getDeliveriesByRoute(r.id).length} paradas</span>
-                <span><i class="ri-steering-2-line"></i> ${driver ? driver.name : 'Sem motorista'}</span>
+                <span><i class="ri-steering-2-line"></i> ${driver ? driver.name : 'Sem motorista''}</span>
                 ${r.distanceKm ? `<span><i class="ri-map-2-line"></i> ${r.distanceKm} km</span>` : ''}
               </div>
             `;
@@ -2075,3 +2049,11 @@
 
     initializeApp();
   });
+
+
+
+
+
+
+
+

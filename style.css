@@ -366,7 +366,7 @@
     background: var(--bg-dark);
     display: none;
     flex-direction: column;
-    padding: 30px;
+    padding: 40px;
     overflow-y: auto;
     z-index: 50;
   }
@@ -2242,7 +2242,7 @@
     background: var(--bg-dark);
     display: none;
     flex-direction: column;
-    padding: 30px;
+    padding: 40px;
     overflow-y: auto;
     z-index: 50;
   }
@@ -3312,3 +3312,171 @@
     font-size: 1.3rem !important;
   }
 }
+
+
+  /* Desktop Horizontal Optimization */
+  @media (min-width: 1024px) {
+    .main-dashboard-view > *, .main-panel-view > * {
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+    }
+  }
+
+
+/* ==========================================================================
+   TASK CARD OPTIMIZATION (STOPS PAGE)
+   ========================================================================== */
+.task-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 20px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: var(--transition);
+}
+
+.task-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 5px;
+}
+
+.task-indicator {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.task-indicator.delivered {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  position: relative;
+}
+
+.task-indicator.delivered::after {
+  content: '\eb7a';
+  font-family: 'remixicon';
+  font-size: 12px;
+  color: var(--bg-dark);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.task-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-white);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.task-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 30px;
+}
+
+.task-row {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.task-label {
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 6px;
+  font-size: 0.8rem;
+}
+
+.task-value {
+  color: var(--text-main);
+}
+
+.task-notes {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  white-space: pre-line;
+  text-transform: uppercase;
+}
+
+.task-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  padding-left: 30px;
+}
+
+.task-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+
+
+/* Sidebar and Header adjustments */
+@media (min-width: 1024px) {
+  .collapse-btn { display: none !important; }
+  .sidebar { width: 280px !important; }
+}
+
+/* Remove sidebar and its toggle on mobile */
+@media (max-width: 768px) {
+  .sidebar, .sidebar-overlay, #btnOpenSidebar { display: none !important; }
+  .mobile-header { justify-content: center !important; }
+  .mobile-header div { margin-left: 0 !important; }
+}
+
+/* Vertical Kanban Calendar */
+.calendar-kanban-board {
+  flex-direction: column !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: 10px !important;
+  gap: 20px !important;
+}
+
+.calendar-column {
+  width: 100% !important;
+  min-width: unset !important;
+  height: auto !important;
+  min-height: 200px;
+}
+
+
+
+/* Stacking dashboard sections vertically on smaller screens */
+@media (max-width: 1024px) {
+  .dashboard-content-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
