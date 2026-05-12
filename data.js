@@ -32,18 +32,42 @@ const StorageManager = {
     deliveries: []
   },
 
+  // --- Helpers for data mapping ---
+  _mapRoute(r) {
+    if (!r) return null;
+    return {
+      ...r,
+      distanceKm: r.distance_km,
+      durationMin: r.duration_min,
+      driverId: r.driver_id,
+      origin: (() => {
+        if (!r.origin) return null;
+        if (typeof r.origin === 'object') return r.origin;
+        try { return JSON.parse(r.origin); } catch(e) { return null; }
+      })()
+    };
+  },
+
+  _mapDelivery(d) {
+    if (!d) return null;
+    return {
+      ...d,
+      routeId: d.route_id
+    };
+  },
+
   async init() {
     console.log("Data: Iniciando sincronização...");
     const client = getSupabase();
     if (!client) {
-      console.error("Data: Supabase não disponível.");
-      return;
+      throw new Error("Supabase não disponível. Verifique sua conexão.");
     }
 
     try {
+      // Fetch users first to check admin
       const { data: users, error: uError } = await client.from('users').select('*');
-      if (uError) console.error("Data: Erro users:", uError.message);
-      else this._cache.users = users || [];
+      if (uError) throw uError;
+      this._cache.users = users || [];
 
       if (this._cache.users.length === 0) {
         console.log("Data: Criando admin padrão...");
@@ -55,44 +79,26 @@ const StorageManager = {
         });
       }
 
+      // Parallel fetch for other data
       const [driversRes, routesRes, deliveriesRes] = await Promise.all([
         client.from('drivers').select('*'),
         client.from('routes').select('*'),
         client.from('deliveries').select('*')
       ]);
 
-      if (driversRes.error) console.error("Data: Erro drivers:", driversRes.error.message);
-      else this._cache.drivers = driversRes.data || [];
+      if (driversRes.error) throw driversRes.error;
+      this._cache.drivers = driversRes.data || [];
 
-      if (routesRes.error) console.error("Data: Erro routes:", routesRes.error.message);
-      else {
-        this._cache.routes = (routesRes.data || []).map(r => ({
-          ...r,
-          distanceKm: r.distance_km,
-          durationMin: r.duration_min,
-          driverId: r.driver_id,
-          origin: (() => {
-            if (!r.origin) return null;
-            if (typeof r.origin === 'object') return r.origin;
-            try { return JSON.parse(r.origin); } catch(e) { return null; }
-          })()
-        }));
-      }
+      if (routesRes.error) throw routesRes.error;
+      this._cache.routes = (routesRes.data || []).map(r => this._mapRoute(r));
 
-      if (deliveriesRes.error) console.error("Data: Erro deliveries:", deliveriesRes.error.message);
-      else {
-        this._cache.deliveries = (deliveriesRes.data || []).map(d => ({
-          ...d,
-          routeId: d.route_id
-        }));
-      }
+      if (deliveriesRes.error) throw deliveriesRes.error;
+      this._cache.deliveries = (deliveriesRes.data || []).map(d => this._mapDelivery(d));
 
-      console.log("Data: Sincronização OK. Users:", this._cache.users.length,
-        "| Rotas:", this._cache.routes.length,
-        "| Entregas:", this._cache.deliveries.length,
-        "| Motoristas:", this._cache.drivers.length);
+      console.log(`Data: Sincronização concluída. [Users: ${this._cache.users.length} | Rotas: ${this._cache.routes.length} | Entregas: ${this._cache.deliveries.length} | Motoristas: ${this._cache.drivers.length}]`);
     } catch (err) {
-      console.error("Data: Erro crítico:", err);
+      console.error("Data: Erro crítico na inicialização:", err);
+      throw new Error(`Falha ao carregar dados do servidor: ${err.message}`);
     }
   },
 
@@ -101,11 +107,16 @@ const StorageManager = {
 
   async fetchUsers() {
     const client = getSupabase();
-    if (!client) return [];
-    const { data, error } = await client.from('users').select('*');
-    if (error) console.error("fetchUsers:", error.message);
-    else this._cache.users = data || [];
-    return this._cache.users;
+    if (!client) return this._cache.users;
+    try {
+      const { data, error } = await client.from('users').select('*');
+      if (error) throw error;
+      this._cache.users = data || [];
+      return this._cache.users;
+    } catch (err) {
+      console.error("fetchUsers error:", err);
+      return this._cache.users;
+    }
   },
 
   async saveUser(user) {
@@ -113,14 +124,11 @@ const StorageManager = {
     if (!client) throw new Error("Supabase não conectado");
 
     const payload = { ...user };
-    if (!payload.id) delete payload.id; // não enviar id:null
+    if (!payload.id) delete payload.id;
 
-    console.log("saveUser →", payload);
     const { data, error } = await client.from('users').upsert(payload).select();
-    if (error) {
-      console.error("saveUser ERRO:", error);
-      throw new Error(`Erro ao salvar usuário: ${error.message}`);
-    }
+    if (error) throw new Error(`Erro ao salvar usuário: ${error.message}`);
+    
     await this.fetchUsers();
     return data ? data[0] : null;
   },
@@ -129,8 +137,8 @@ const StorageManager = {
     const client = getSupabase();
     if (!client) return;
     const { error } = await client.from('users').delete().eq('id', id);
-    if (error) console.error("deleteUser:", error.message);
-    else this._cache.users = this._cache.users.filter(u => u.id !== id);
+    if (error) throw new Error(`Erro ao deletar usuário: ${error.message}`);
+    this._cache.users = this._cache.users.filter(u => u.id !== id);
   },
 
   // ─── DRIVERS ───────────────────────────────────────────────────────────────
@@ -138,11 +146,16 @@ const StorageManager = {
 
   async fetchDrivers() {
     const client = getSupabase();
-    if (!client) return [];
-    const { data, error } = await client.from('drivers').select('*');
-    if (error) console.error("fetchDrivers:", error.message);
-    else this._cache.drivers = data || [];
-    return this._cache.drivers;
+    if (!client) return this._cache.drivers;
+    try {
+      const { data, error } = await client.from('drivers').select('*');
+      if (error) throw error;
+      this._cache.drivers = data || [];
+      return this._cache.drivers;
+    } catch (err) {
+      console.error("fetchDrivers error:", err);
+      return this._cache.drivers;
+    }
   },
 
   async saveDriver(driver) {
@@ -152,12 +165,9 @@ const StorageManager = {
     const payload = { ...driver };
     if (!payload.id) delete payload.id;
 
-    console.log("saveDriver →", payload);
     const { data, error } = await client.from('drivers').upsert(payload).select();
-    if (error) {
-      console.error("saveDriver ERRO:", error);
-      throw new Error(`Erro ao salvar motorista: ${error.message}`);
-    }
+    if (error) throw new Error(`Erro ao salvar motorista: ${error.message}`);
+    
     await this.fetchDrivers();
     return data ? data[0] : null;
   },
@@ -166,8 +176,8 @@ const StorageManager = {
     const client = getSupabase();
     if (!client) return;
     const { error } = await client.from('drivers').delete().eq('id', id);
-    if (error) console.error("deleteDriver:", error.message);
-    else this._cache.drivers = this._cache.drivers.filter(d => d.id !== id);
+    if (error) throw new Error(`Erro ao deletar motorista: ${error.message}`);
+    this._cache.drivers = this._cache.drivers.filter(d => d.id !== id);
   },
 
   // ─── ROUTES ────────────────────────────────────────────────────────────────
@@ -176,21 +186,16 @@ const StorageManager = {
 
   async fetchRoutes() {
     const client = getSupabase();
-    if (!client) return [];
-    const { data, error } = await client.from('routes').select('*');
-    if (error) { console.error("fetchRoutes:", error.message); return this._cache.routes; }
-    this._cache.routes = (data || []).map(r => ({
-      ...r,
-      distanceKm: r.distance_km,
-      durationMin: r.duration_min,
-      driverId: r.driver_id,
-      origin: (() => {
-        if (!r.origin) return null;
-        if (typeof r.origin === 'object') return r.origin;
-        try { return JSON.parse(r.origin); } catch(e) { return null; }
-      })()
-    }));
-    return this._cache.routes;
+    if (!client) return this._cache.routes;
+    try {
+      const { data, error } = await client.from('routes').select('*');
+      if (error) throw error;
+      this._cache.routes = (data || []).map(r => this._mapRoute(r));
+      return this._cache.routes;
+    } catch (err) {
+      console.error("fetchRoutes error:", err);
+      return this._cache.routes;
+    }
   },
 
   async saveRoute(route) {
@@ -211,23 +216,20 @@ const StorageManager = {
       origin: route.origin ? JSON.stringify(route.origin) : null
     };
 
-    if (route.id) payload.id = route.id; // só inclui id se for edição
+    if (route.id) payload.id = route.id;
 
-    console.log("saveRoute →", payload);
     const { data, error } = await client.from('routes').upsert(payload).select();
-    if (error) {
-      console.error("saveRoute ERRO:", error);
-      throw new Error(`Erro ao salvar rota: ${error.message}`);
-    }
+    if (error) throw new Error(`Erro ao salvar rota: ${error.message}`);
+    
     await this.fetchRoutes();
-    return data ? data[0] : null;
+    return data ? this._mapRoute(data[0]) : null;
   },
 
   async deleteRoute(id) {
     const client = getSupabase();
     if (!client) return;
     const { error } = await client.from('routes').delete().eq('id', id);
-    if (error) console.error("deleteRoute:", error.message);
+    if (error) throw new Error(`Erro ao deletar rota: ${error.message}`);
     await this.fetchRoutes();
   },
 
@@ -242,14 +244,16 @@ const StorageManager = {
 
   async fetchDeliveries() {
     const client = getSupabase();
-    if (!client) return [];
-    const { data, error } = await client.from('deliveries').select('*');
-    if (error) { console.error("fetchDeliveries:", error.message); return this._cache.deliveries; }
-    this._cache.deliveries = (data || []).map(d => ({
-      ...d,
-      routeId: d.route_id
-    }));
-    return this._cache.deliveries;
+    if (!client) return this._cache.deliveries;
+    try {
+      const { data, error } = await client.from('deliveries').select('*');
+      if (error) throw error;
+      this._cache.deliveries = (data || []).map(d => this._mapDelivery(d));
+      return this._cache.deliveries;
+    } catch (err) {
+      console.error("fetchDeliveries error:", err);
+      return this._cache.deliveries;
+    }
   },
 
   async saveDelivery(delivery) {
@@ -271,22 +275,19 @@ const StorageManager = {
 
     if (delivery.id) payload.id = delivery.id;
 
-    console.log("saveDelivery →", payload);
     const { data, error } = await client.from('deliveries').upsert(payload).select();
-    if (error) {
-      console.error("saveDelivery ERRO:", error);
-      throw new Error(`Erro ao salvar parada: ${error.message}`);
-    }
+    if (error) throw new Error(`Erro ao salvar parada: ${error.message}`);
+    
     await this.fetchDeliveries();
-    return data ? data[0] : null;
+    return data ? this._mapDelivery(data[0]) : null;
   },
 
   async deleteDelivery(id) {
     const client = getSupabase();
     if (!client) return;
     const { error } = await client.from('deliveries').delete().eq('id', id);
-    if (error) console.error("deleteDelivery:", error.message);
-    else this._cache.deliveries = this._cache.deliveries.filter(d => d.id !== id);
+    if (error) throw new Error(`Erro ao deletar parada: ${error.message}`);
+    this._cache.deliveries = this._cache.deliveries.filter(d => d.id !== id);
     await this.fetchDeliveries();
   },
 

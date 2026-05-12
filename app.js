@@ -101,6 +101,22 @@
       if (tabDashboard) tabDashboard.style.display = isMotorista ? 'none' : 'flex';
       if (tabDrivers) tabDrivers.style.display = isMotorista ? 'none' : 'flex';
       if (tabMap) tabMap.style.display = isMotorista ? 'none' : 'flex';
+
+      // Sync bottom nav visibility with sidebar tabs
+      const mbnDashboard = document.getElementById('mbn-dashboard');
+      const mbnDrivers  = document.getElementById('mbn-drivers');
+      const mbnMap      = document.getElementById('mbn-map');
+      if (mbnDashboard) mbnDashboard.style.display = isMotorista ? 'none' : 'flex';
+      if (mbnDrivers)   mbnDrivers.style.display   = isMotorista ? 'none' : 'flex';
+      if (mbnMap)       mbnMap.style.display        = isMotorista ? 'none' : 'flex';
+
+      // If motorista, default bottom nav active to routes
+      if (isMotorista) {
+        const mbnRoutes = document.getElementById('mbn-routes');
+        if (mbnRoutes) mbnRoutes.classList.add('active');
+        const mbnDash = document.getElementById('mbn-dashboard');
+        if (mbnDash) mbnDash.classList.remove('active');
+      }
       
       // Hide global add buttons based on permissions
       const btnNewRoute = document.getElementById('btnNewRouteMain');
@@ -269,6 +285,9 @@
         const targetPanel = document.getElementById(targetId);
         if(targetPanel) targetPanel.classList.add('active');
         
+        // Sync bottom nav active state
+        updateBottomNavActive(tab.dataset.tab);
+
         // Refresh data based on tab
         const viewMap = {
           'dashboard': 'mainDashboardView',
@@ -286,6 +305,28 @@
         }
       });
     });
+
+    // === MOBILE BOTTOM NAVIGATION ===
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+
+    function updateBottomNavActive(tabId) {
+      mobileNavItems.forEach(item => {
+        item.classList.toggle('active', item.dataset.tab === tabId);
+      });
+    }
+
+    mobileNavItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const tabId = item.dataset.tab;
+        const sidebarTab = document.getElementById(`tab-${tabId}`);
+        if (sidebarTab && sidebarTab.style.display !== 'none') {
+          sidebarTab.click();
+        }
+      });
+    });
+
+    // Initialize bottom nav active state to match default tab
+    updateBottomNavActive('dashboard');
 
     // === DASHBOARD STAT CARDS CLICKS ===
     document.getElementById('stat-routes-main')?.addEventListener('click', () => {

@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0A192F" />
   <title>LOGIC FRETE — Gerenciador de Rotas de Entrega</title>
   <meta name="description" content="Gerencie rotas de entrega com pesquisa inteligente de endereços, cálculo de distâncias e visualização de mapas. Otimize suas entregas com o LOGIC FRETE." />
 
@@ -628,6 +631,30 @@
 
   <!-- Print Area (Hidden during normal use) -->
   <div id="printArea"></div>
+
+  <!-- ===================== MOBILE BOTTOM NAVIGATION ===================== -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <button class="mobile-nav-item active" data-tab="dashboard" id="mbn-dashboard">
+      <i class="ri-dashboard-3-line"></i>
+      <span>Painel</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="routes" id="mbn-routes">
+      <i class="ri-route-line"></i>
+      <span>Rotas</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="calendar" id="mbn-calendar">
+      <i class="ri-calendar-todo-line"></i>
+      <span>Agenda</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="drivers" id="mbn-drivers">
+      <i class="ri-user-star-line"></i>
+      <span>Motoristas</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="map" id="mbn-map">
+      <i class="ri-truck-fill"></i>
+      <span>Mapa</span>
+    </button>
+  </nav>
 
   </div> <!-- End Main App Wrapper -->
 
