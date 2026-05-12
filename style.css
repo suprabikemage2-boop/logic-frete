@@ -1836,9 +1836,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #333;
-      padding-bottom: 15px;
-      margin-bottom: 20px;
+      border-bottom: 1.5px solid #333;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
     }
 
     .print-title {
@@ -1849,16 +1849,17 @@
 
     .print-meta {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 25px;
-      padding: 15px;
-      background: #f4f4f4;
-      border-radius: 8px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      background: #f8f8f8;
+      border: 1px solid #eee;
+      border-radius: 6px;
     }
 
     .print-meta-item {
-      font-size: 14px;
+      font-size: 12px;
       color: #333;
     }
 
@@ -1873,19 +1874,23 @@
     }
 
     .print-table th {
-      background: #333;
+      background: #444;
       color: white;
       text-align: left;
-      padding: 10px;
-      font-size: 13px;
+      padding: 8px 10px;
+      font-size: 12px;
     }
 
     .print-table td {
-      border-bottom: 1px solid #ddd;
-      padding: 12px 10px;
+      border-bottom: 1px solid #eee;
+      padding: 8px 10px;
       vertical-align: top;
-      font-size: 12px;
+      font-size: 11px;
       color: #333;
+    }
+
+    .print-table tr {
+      page-break-inside: avoid;
     }
 
     .print-table tr:nth-child(even) {
