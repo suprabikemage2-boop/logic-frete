@@ -429,6 +429,27 @@
       document.getElementById('addressSearchInput').value = '';
       MapService.clearMap();
     });
+
+    // CPF/CNPJ Mask & Limit
+    const deliveryCpfInput = document.getElementById('deliveryCpf');
+    deliveryCpfInput?.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\D/g, ''); // Remove non-digits
+      if (v.length > 14) v = v.slice(0, 14); // Limit to 14 numbers (CNPJ max)
+      
+      if (v.length <= 11) {
+        // CPF Mask: 000.000.000-00
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      } else {
+        // CNPJ Mask: 00.000.000/0000-00
+        v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        v = v.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+      }
+      e.target.value = v;
+    });
   
     // === ROUTE MODAL LOGIC ===
     const btnNewRoute = document.getElementById('btnNewRoute');
@@ -643,7 +664,7 @@
       const addr = document.getElementById('deliveryAddressInput').value;
   
       if (!routeId) return showToast('Selecione uma rota', 'error');
-      if (!recipient) return showToast('Nome do destinatário é obrigatório', 'error');
+      if (!recipient) return showToast('Nome do Cliente é obrigatório', 'error');
       if (!lat || !lng) return showToast('Selecione um endereço válido', 'error');
   
       const deliveryData = {
@@ -1056,7 +1077,7 @@
           <thead>
             <tr>
               <th style="width:30px">#</th>
-              <th>Destinatário</th>
+              <th>Cliente</th>
               <th style="width:100px">Telefone</th>
               <th>Endereço</th>
               <th style="width:150px">Observações</th>
