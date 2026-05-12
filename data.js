@@ -69,7 +69,7 @@ const StorageManager = {
       if (uError) throw uError;
       this._cache.users = users || [];
 
-      if (this._cache.users.length === 0) {
+      const hasAdmin = this._cache.users.some(u => u.username === 'admin');`n      if (!hasAdmin) {
         console.log("Data: Criando admin padrão...");
         await this.saveUser({
           name: 'Administrador',
@@ -323,3 +323,4 @@ const StorageManager = {
     };
   }
 };
+

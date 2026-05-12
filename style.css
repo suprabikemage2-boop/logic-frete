@@ -1821,7 +1821,7 @@
       display: block !important;
     }
 
-    .sidebar, .map-controls-overlay, .route-detail-panel, .main-dashboard-view, 
+    .sidebar, .mobile-header, .mobile-bottom-nav, .map-controls-overlay, .route-detail-panel, .main-dashboard-view, 
     .main-panel-view, .modal-overlay, .toast-container, .confirm-dialog {
       display: none !important;
     }
@@ -2447,26 +2447,36 @@
 
   /* CALENDAR KANBAN */
   .calendar-kanban-board {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 10px 5px;
-    flex: 1;
-    min-height: 0;
-    margin-top: 20px;
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 10px 5px;
+  flex: 1;
+  min-height: 0;
+  margin-top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .calendar-kanban-board {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
   }
+}
 
   .calendar-column {
-    min-width: 300px;
-    width: 300px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    height: 100%;
+  width: 300px;
+  min-width: 300px;
+  height: auto !important;
+  min-height: 200px;
+}
+
+@media (max-width: 1024px) {
+  .calendar-column {
+    width: 100% !important;
+    min-width: unset !important;
   }
+}
 
   .calendar-column:hover {
     background: rgba(255, 255, 255, 0.06);
@@ -2698,6 +2708,18 @@
 /* Error Message Animation */
 .login-error-message {
   animation: shake 0.4s ease-in-out;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 10px;
+  border-radius: 8px;
+  color: #ff4d4d;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  font-size: 0.85rem;
 }
 
 @keyframes shake {
@@ -3073,10 +3095,22 @@
 
   /* === CALENDAR === */
   .calendar-kanban-board {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 10px 5px;
+  flex: 1;
+  min-height: 0;
+  margin-top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .calendar-kanban-board {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
   }
+}
 
   .calendar-kanban-board::-webkit-scrollbar {
     display: none;
@@ -3131,7 +3165,7 @@
   }
 
   /* === LOGIN CARD === */
-  .login-card {
+  .login-card { text-align: center;
     padding: 28px 22px !important;
     width: 95% !important;
   }
@@ -3209,9 +3243,18 @@
 
   /* Calendar column smaller */
   .calendar-column {
-    min-width: 220px !important;
-    width: 220px !important;
+  width: 300px;
+  min-width: 300px;
+  height: auto !important;
+  min-height: 200px;
+}
+
+@media (max-width: 1024px) {
+  .calendar-column {
+    width: 100% !important;
+    min-width: unset !important;
   }
+}
 
   /* Prevent iOS auto-zoom on inputs */
   input, select, textarea {
@@ -3264,7 +3307,7 @@
   backdrop-filter: blur(10px);
 }
 
-.login-card {
+.login-card { text-align: center;
   background: var(--bg-panel);
   padding: 40px;
   border-radius: var(--border-radius-lg);
@@ -3303,7 +3346,7 @@
 
 /* Responsive login for very small screens */
 @media (max-width: 380px) {
-  .login-card {
+  .login-card { text-align: center;
     padding: 24px 18px !important;
     gap: 14px !important;
   }
@@ -3456,18 +3499,35 @@
 
 /* Vertical Kanban Calendar */
 .calendar-kanban-board {
-  flex-direction: column !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  padding: 10px !important;
-  gap: 20px !important;
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 10px 5px;
+  flex: 1;
+  min-height: 0;
+  margin-top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .calendar-kanban-board {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
 }
 
 .calendar-column {
-  width: 100% !important;
-  min-width: unset !important;
+  width: 300px;
+  min-width: 300px;
   height: auto !important;
   min-height: 200px;
+}
+
+@media (max-width: 1024px) {
+  .calendar-column {
+    width: 100% !important;
+    min-width: unset !important;
+  }
 }
 
 
@@ -3479,4 +3539,11 @@
     gap: 20px !important;
   }
 }
+
+
+
+/* Password centering */
+#loginPass { text-align: center; }
+
+
 
