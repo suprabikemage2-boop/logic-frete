@@ -961,42 +961,60 @@
         }
 
         div.innerHTML = `
-          <div class="item-header">
-            <div style="display:flex; align-items:center; gap:10px; overflow:hidden">
-              <span class="badge ${st.class}">${st.label}</span>
-              <span class="item-title">${r.name}</span>
-            </div>
-            <div class="item-actions">
-               <i class="ri-arrow-down-s-line expand-icon"></i>
-            </div>
-          </div>
-          <div class="item-details">
-            <div class="route-meta-grid">
-              <div class="meta-item"><i class="ri-calendar-line"></i> ${formatDate(r.date)}</div>
-              <div class="meta-item"><i class="ri-steering-2-line"></i> ${driverDisplay}</div>
-              <div class="meta-item"><i class="ri-map-pin-line"></i> ${dCount} paradas</div>
-              <div class="meta-item"><i class="ri-map-2-line"></i> ${r.distanceKm || '0'} km</div>
-            </div>
-            
-            ${r.notes ? `<div class="route-notes-preview"><i class="ri-information-line"></i> ${r.notes}</div>` : ''}
-            
-            <div style="margin-top:15px">
-              <div class="section-header" style="font-size:0.7rem; margin-bottom:10px">ORDEM DAS PARADAS (Arraste para reordenar)</div>
-              <div class="stops-detail-list" ondragover="window.handleStopDragOver(event)" ondrop="window.handleStopDrop(event, '${r.id}')">
-                ${stopsHtml}
+          <div class="item-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
+            <div style="display:flex; justify-content: space-between; align-items: center;">
+              <div style="display:flex; align-items:center; gap:10px; overflow:hidden">
+                <span class="badge ${st.class}">${st.label}</span>
+                <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${r.name}</span>
+              </div>
+              <div class="item-actions">
+                 <i class="ri-arrow-down-s-line expand-icon"></i>
               </div>
             </div>
+            
+            <div class="item-collapsed-meta" style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; color: var(--text-muted);">
+              <span><i class="ri-calendar-line"></i> ${formatDate(r.date)}</span>
+              <span><i class="ri-steering-2-line"></i> ${driverDisplay}</span>
+              <span><i class="ri-map-pin-line"></i> ${dCount} paradas</span>
+              <span><i class="ri-map-2-line"></i> ${r.distanceKm || '0'} km</span>
+            </div>
+          </div>
 
-            <div class="details-actions" style="margin-top:15px; border-top:1px solid var(--border-color); padding-top:12px; justify-content: flex-end; gap: 10px;">
+          <div class="item-details">
+            ${r.notes ? `<div class="route-notes-preview" style="margin-bottom: 15px;"><i class="ri-information-line"></i> <strong>OBS:</strong> ${r.notes}</div>` : ''}
+            
+            <div class="section-header" style="font-size:0.7rem; margin-bottom:10px">ORDEM DAS PARADAS (Arraste para reordenar)</div>
+            <div class="stops-detail-list" ondragover="window.handleStopDragOver(event)" ondrop="window.handleStopDrop(event, '${r.id}')">
+              ${stopsHtml}
+            </div>
+
+            <div class="details-actions" style="margin-top:15px; border-top:1px solid var(--border-color); padding-top:15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
               ${window.appPermissions?.canEditRoute ? `
-                <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.openRouteModalFromList('${r.id}')"><i class="ri-edit-line"></i> Editar Rota</button>
+                <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openRouteModalFromList('${r.id}')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px;">
+                  <i class="ri-edit-line" style="font-size: 1.2rem;"></i>
+                  <span>Editar Rota</span>
+                </button>
               ` : ''}
-              <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.printRoute('${r.id}')"><i class="ri-printer-line"></i> Imprimir Rota</button>
-              <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.viewOnMap('${r.id}')"><i class="ri-map-2-line"></i> Ver no Mapa</button>
+              
+              <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.printRoute('${r.id}')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px;">
+                <i class="ri-printer-line" style="font-size: 1.2rem;"></i>
+                <span>Imprimir Rota</span>
+              </button>
+              
+              <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.viewOnMap('${r.id}')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px;">
+                <i class="ri-map-2-line" style="font-size: 1.2rem;"></i>
+                <span>Ver no Mapa</span>
+              </button>
               
               ${r.status === 'done' 
-                ? `<button class="btn-warning btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'active')"><i class="ri-refresh-line"></i> Reativar Rota</button>` 
-                : `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'done')"><i class="ri-check-line"></i> Concluir Rota</button>`
+                ? `<button class="btn-warning btn-sm" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'active')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px;">
+                    <i class="ri-refresh-line" style="font-size: 1.2rem;"></i>
+                    <span>Reativar Rota</span>
+                  </button>` 
+                : `<button class="btn-primary btn-sm" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'done')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px;">
+                    <i class="ri-check-line" style="font-size: 1.2rem;"></i>
+                    <span>Concluir Rota</span>
+                  </button>`
               }
             </div>
           </div>
@@ -1334,10 +1352,17 @@
         const doneRoutesCount = routes.filter(r => r.status === 'done').length;
         const totalKm = routes.reduce((sum, r) => sum + (parseFloat(String(r.distanceKm).replace(',', '.')) || 0), 0).toFixed(1);
         
-        document.getElementById('dashTodayRoutes').innerText = routesToday.length;
-        document.getElementById('dashActiveRoutes').innerText = activeRoutesCount;
-        document.getElementById('dashDoneRoutes').innerText = doneRoutesCount;
-        document.getElementById('dashTotalKm').innerText = totalKm + ' km';
+        const elToday = document.getElementById('stat-routes-val-main');
+        const elActive = document.getElementById('stat-pending-val-main');
+        const elDone = document.getElementById('stat-done-val-main');
+        const elKm = document.getElementById('stat-km-val-main');
+        const elDate = document.getElementById('currentDateDisplay');
+
+        if (elToday) elToday.innerText = routesToday.length;
+        if (elActive) elActive.innerText = activeRoutesCount;
+        if (elDone) elDone.innerText = doneRoutesCount;
+        if (elKm) elKm.innerText = totalKm + ' km';
+        if (elDate) elDate.innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         const list = document.getElementById('activeRoutesListMain');
         if (list) {
@@ -1355,22 +1380,25 @@
               const div = document.createElement('div');
               div.className = 'task-card list-item';
               div.innerHTML = `
-                <div class="item-header">
-                  <div style="display:flex; align-items:center; gap:8px">
-                    <span class="badge ${st.class}">${st.label}</span>
-                    <span class="item-title" style="font-size:0.9rem">${r.name}</span>
+                <div class="item-header" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 12px;">
+                  <div style="display:flex; justify-content: space-between; align-items: center;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span class="badge ${st.class}">${st.label}</span>
+                      <span class="item-title" style="font-size:1rem; font-weight: 700;">${r.name}</span>
+                    </div>
                   </div>
-                </div>
-                <div class="item-body" style="padding: 10px 15px">
-                   <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px">
-                     <i class="ri-steering-2-line"></i> ${driverName} &bull; <i class="ri-map-pin-line"></i> ${stops.length} paradas
-                   </div>
-                   <div style="display:flex; gap:8px; flex-wrap: wrap;">
-                    <button class="btn-primary btn-xs" style="flex:1; min-width: 80px;" onclick="window.viewOnMap('${r.id}')">Mapa</button>
-                    <button class="btn-secondary btn-xs" style="flex:1; min-width: 80px;" onclick="window.printRoute('${r.id}')">Print</button>
+                  <div class="item-collapsed-meta" style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; color: var(--text-muted);">
+                    <span><i class="ri-steering-2-line"></i> ${driverName}</span>
+                    <span><i class="ri-map-pin-line"></i> ${stops.length} paradas</span>
+                    ${r.distanceKm ? `<span><i class="ri-map-2-line"></i> ${r.distanceKm} km</span>` : ''}
+                  </div>
+                  
+                  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px;">
+                    <button class="btn-primary btn-xs" onclick="window.viewOnMap('${r.id}')" style="padding: 8px 4px;">Mapa</button>
+                    <button class="btn-secondary btn-xs" onclick="window.printRoute('${r.id}')" style="padding: 8px 4px;">Print</button>
                     ${r.status === 'done' 
-                      ? `<button class="btn-warning btn-xs" style="flex:1; min-width: 80px;" onclick="window.updateRouteStatusFromList('${r.id}', 'active')">Reativar</button>` 
-                      : `<button class="btn-success btn-xs" style="flex:1; min-width: 80px;" onclick="window.updateRouteStatusFromList('${r.id}', 'done')">Concluir</button>`
+                      ? `<button class="btn-warning btn-xs" onclick="window.updateRouteStatusFromList('${r.id}', 'active')" style="padding: 8px 4px;">Reativar</button>` 
+                      : `<button class="btn-success btn-xs" onclick="window.updateRouteStatusFromList('${r.id}', 'done')" style="padding: 8px 4px;">Concluir</button>`
                     }
                   </div>
                 </div>
