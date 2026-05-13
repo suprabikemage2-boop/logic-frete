@@ -1959,6 +1959,33 @@
     z-index: 2;
   }
   
+  .marker-label {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(13, 25, 48, 0.9);
+    backdrop-filter: blur(4px);
+    color: var(--text-white);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    opacity: 0.9;
+    transition: var(--transition);
+  }
+
+  .custom-marker:hover .marker-label {
+    opacity: 1;
+    background: var(--bg-card);
+    border-color: var(--accent-primary);
+    z-index: 10;
+  }
+  
   .marker-pin.marker-origin { background: var(--text-white) !important; }
   .marker-pin.marker-origin::after { background: var(--bg-dark) !important; }
   

@@ -124,7 +124,7 @@
   
       // Add stop markers
       stops.forEach((s, i) => {
-        this.createMarker(s.lat, s.lng, i + 1, s.status)
+        this.createMarker(s.lat, s.lng, i + 1, s.status, false, s.recipient)
             .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(`<strong>Parada ${i+1}: ${s.recipient}</strong><br>${s.address}`));
       });
   
@@ -232,13 +232,18 @@
       }
     },
   
-    createMarker(lat, lng, number, status = 'planned', isOrigin = false) {
+    createMarker(lat, lng, number, status = 'planned', isOrigin = false, labelText = '') {
       const el = document.createElement('div');
       el.className = 'custom-marker';
       const pinClass = isOrigin ? 'marker-origin' : `marker-${status}`;
+      
+      // Use labelText if provided, otherwise just the number/O
+      const label = labelText || (isOrigin ? 'Origem' : `Parada ${number}`);
+
       el.innerHTML = `
         <div class="marker-pin ${pinClass}"></div>
         <i class="${isOrigin ? 'ri-map-pin-user-fill' : ''}">${isOrigin ? '' : number}</i>
+        <div class="marker-label">${label}</div>
       `;
   
       const marker = new maplibregl.Marker({ element: el })
