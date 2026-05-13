@@ -1364,6 +1364,9 @@
 
             <div class="details-actions" style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px; display: flex; justify-content: flex-end; gap: 10px;">
                ${(window.appPermissions?.isMaster || window.appPermissions?.isGerente) ? `
+                 <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')">
+                   <i class="ri-delete-bin-line"></i> Excluir Motorista
+                 </button>
                  <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openDriverModalFromList('${d.id}')">
                    <i class="ri-edit-line"></i> Editar Perfil
                  </button>
@@ -1770,24 +1773,13 @@
         }
       }
       
-      // Map visualization
-      MapService.clearMap();
-      if (route.origin && route.origin.lat) {
-        MapService.createMarker(route.origin.lat, route.origin.lng, 'O', 'planned');
-      }
-      
-      deliveries.forEach((d, idx) => {
-        MapService.createMarker(d.lat, d.lng, idx + 1, d.status);
-      });
-
-      if (deliveries.length > 0) {
-        const waypoints = deliveries.map(d => [d.lng, d.lat]);
-        if (route.origin && route.origin.lat) {
-          waypoints.unshift([route.origin.lng, route.origin.lat]);
-        }
+      // Map visualization & Routing
+      try {
+        await MapService.drawRoute(route.origin, deliveries);
         
-        try {
-          const result = await MapService.drawRoute(waypoints);
+        // Update stats from the calculation
+        const result = await MapService.getLatestRouteResult();
+        if (result) {
           document.getElementById('rdpDistance').innerText = result.distance + ' km';
           document.getElementById('rdpDuration').innerText = result.duration + ' min';
           
@@ -1797,9 +1789,18 @@
             route.durationMin = result.duration;
             StorageManager.saveRoute(route);
           }
-        } catch (e) {
-          console.warn("Could not draw route line", e);
         }
+      } catch (e) {
+        console.warn("Could not draw route line", e);
+        // Fallback: Just show markers if routing fails
+        MapService.clearMap();
+        if (route.origin && route.origin.lat) {
+          MapService.createMarker(route.origin.lat, route.origin.lng, 'O', 'planned', true);
+        }
+        deliveries.forEach((d, idx) => {
+          MapService.createMarker(d.lat, d.lng, idx + 1, d.status);
+        });
+        MapService.fitAll();
       }
       
       renderRdpStopsList(deliveries);
@@ -1923,6 +1924,14 @@
         showToast("Rota excluída");
         renderRoutesList();
         refreshDashboard();
+      });
+    };
+
+    window.deleteDriverFromList = (id) => {
+      openConfirmDialog("Excluir este motorista? As rotas vinculadas ficarão sem motorista.", async () => {
+        await StorageManager.deleteDriver(id);
+        showToast("Motorista excluído");
+        renderDriversList();
       });
     };
 

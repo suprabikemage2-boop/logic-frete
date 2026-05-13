@@ -101,14 +101,21 @@
         this.map.removeSource(this.routeSourceId);
       }
     },
-  
+      _lastResult: null,
+
+    getLatestRouteResult() {
+      return this._lastResult;
+    },
+
     // Manual Routing via OSRM + GeoJSON
     async drawRoute(origin, stops, onComplete) {
       if (!this.map || !origin) return;
       this.clearMap();
+      this._lastResult = null;
   
       // Add origin marker
-      this.createMarker(origin.lat, origin.lng, 'O', 'planned', true).setPopup(new maplibregl.Popup().setText('Origem: ' + origin.address));
+      this.createMarker(origin.lat, origin.lng, 'O', 'planned', true)
+          .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(`<strong>Ponto de Partida</strong><br>${origin.address || ''}`));
   
       if (!stops || stops.length === 0) {
         this.map.flyTo({ center: [origin.lng, origin.lat], zoom: 14 });
@@ -118,7 +125,7 @@
       // Add stop markers
       stops.forEach((s, i) => {
         this.createMarker(s.lat, s.lng, i + 1, s.status)
-            .setPopup(new maplibregl.Popup().setText(`${s.recipient}\n${s.address}`));
+            .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(`<strong>Parada ${i+1}: ${s.recipient}</strong><br>${s.address}`));
       });
   
       // Build OSRM coordinates string: lng,lat;lng,lat...
@@ -135,6 +142,11 @@
         if (data.code === 'Ok') {
           const route = data.routes[0];
           const geometry = route.geometry;
+          
+          this._lastResult = {
+            distance: (route.distance / 1000).toFixed(1),
+            duration: Math.round(route.duration / 60)
+          };
   
           // Add route to map
           this.map.addSource(this.routeSourceId, {
@@ -161,23 +173,15 @@
             }
           });
   
-          // Fit map to route
-          const coordinates = geometry.coordinates;
-          const bounds = coordinates.reduce((acc, coord) => {
-            return acc.extend(coord);
-          }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
-  
-          this.map.fitBounds(bounds, { padding: 50 });
-  
           if (onComplete) {
-            const distKm = (route.distance / 1000).toFixed(1);
-            const timeMin = Math.round(route.duration / 60);
-            onComplete(distKm, timeMin);
+            onComplete(this._lastResult.distance, this._lastResult.duration);
           }
         }
       } catch (err) {
         console.error("Routing error:", err);
       }
+      
+      this.fitAll();
     },
   
     // Geocoding via Nominatim API
@@ -193,7 +197,7 @@
         const data = await response.json();
         
         if (!data || !data.candidates || data.candidates.length === 0) return [];
-
+ 
         return data.candidates.map(item => {
           // ArcGIS returns a beautifully formatted address in Match_addr
           // Example: "Rua Augusta, 1000, Consolação, São Paulo, 01305-100"
@@ -215,7 +219,7 @@
                 display = customDisplay;
             }
           }
-
+ 
           return {
             address: display,
             lat: item.location.y,

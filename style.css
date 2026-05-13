@@ -1959,11 +1959,12 @@
     z-index: 2;
   }
   
-  .marker-origin .marker-pin { background: var(--text-white); }
-  .marker-origin i { color: var(--bg-dark); }
+  .marker-pin.marker-origin { background: var(--text-white) !important; }
+  .marker-pin.marker-origin::after { background: var(--bg-dark) !important; }
   
-  .marker-done .marker-pin { background: var(--text-muted); }
-  .marker-active .marker-pin { background: var(--accent-secondary); animation: pulse 2s infinite; }
+  .marker-pin.marker-done { background: #4ade80 !important; }
+  .marker-pin.marker-active { background: var(--accent-secondary) !important; animation: pulse 2s infinite; }
+  .marker-pin.marker-planned { background: var(--accent-primary) !important; }
   
   @keyframes pulse {
     0% { transform: rotate(-45deg) scale(1); }
@@ -3246,10 +3247,56 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Form rows: single column */
+  /* === FORM ROWS & GROUPS MOBILE === */
   .form-row {
     grid-template-columns: 1fr !important;
-    gap: 10px !important;
+    gap: 8px !important;
+  }
+
+  .form-group label {
+    font-size: 0.75rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Compact form groups for mobile to save space */
+  .modal-body .form-group {
+    margin-bottom: 12px !important;
+  }
+
+  /* === MAIN PANEL VIEWS: Better framing === */
+  .main-panel-view, .main-dashboard-view {
+    padding: 12px !important; /* Slightly tighter padding for more content space */
+    padding-bottom: calc(var(--mobile-nav-h) + var(--safe-b) + 12px) !important;
+  }
+
+  .main-grid-list {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+
+  .main-panel-title {
+    font-size: 1.25rem !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  /* === NEW ROUTE MODAL SPECIFIC === */
+  #modalRoute .modal {
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  #modalRoute .modal-body {
+    padding: 16px 16px 20px !important;
+  }
+
+  #modalRoute .color-picker-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 15px !important;
+  }
+
+  #modalRoute .color-circle {
+    width: 40px !important;
+    height: 40px !important;
   }
 
   /* === ROUTE DETAIL PANEL: bottom sheet === */
@@ -3261,13 +3308,89 @@
     border-radius: 20px 20px 0 0 !important;
   }
 
-  /* === MAP CONTROLS === */
+  /* === MAP CONTROLS MOBILE OPTIMIZATION === */
   .map-controls-overlay {
-    left: 10px !important;
-    right: 10px !important;
-    width: calc(100% - 20px) !important;
-    transform: none !important;
-    top: 10px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    top: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    padding: 10px !important;
+    pointer-events: none !important; /* Allow clicking map through container */
+  }
+
+  .address-search-wrap {
+    pointer-events: auto !important;
+    background: rgba(13, 25, 48, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    height: 56px !important;
+    padding: 0 15px !important;
+    width: 100% !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+  }
+
+  .address-search-wrap input {
+    font-size: 16px !important; /* Prevent iOS zoom */
+    font-weight: 600 !important;
+    color: var(--text-white) !important;
+  }
+
+  .map-actions-group {
+    pointer-events: auto !important;
+    position: fixed !important;
+    bottom: calc(var(--mobile-nav-h) + var(--safe-b) + 20px) !important;
+    right: 16px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    background: transparent !important;
+    padding: 0 !important;
+    width: auto !important;
+    z-index: 1001 !important;
+    transition: bottom 0.3s ease !important;
+  }
+
+  /* Dynamically adjust buttons when Route Detail Panel is open */
+  .map-area:has(.route-detail-panel.show) .map-actions-group {
+    bottom: calc(62vh + 15px) !important;
+  }
+
+  .map-btn {
+    width: 54px !important;
+    height: 54px !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 50% !important;
+    color: var(--accent-primary) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.5rem !important;
+  }
+
+  .map-divider, .map-theme-group {
+    display: none !important;
+  }
+
+  .search-results {
+    top: 60px !important;
+    width: 100% !important;
+    left: 0 !important;
+    border-radius: 12px !important;
+    max-height: 45vh !important;
+    background: var(--bg-panel) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-lg) !important;
   }
 
   /* === DETAIL ACTIONS === */
@@ -3283,39 +3406,47 @@
     font-size: 0.75rem !important;
   }
 
-  /* === CALENDAR === */
+  /* === CALENDAR MOBILE OPTIMIZATION === */
   .calendar-kanban-board {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 10px 5px;
-    flex: 1;
-    min-height: 0;
-    margin-top: 10px;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 12px !important;
+    padding: 10px 16px !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    height: calc(100vh - 180px) !important;
   }
 
   .calendar-column {
-    width: 320px;
-    min-width: 320px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--border-radius-md);
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 85vw !important;
+    min-width: 85vw !important;
+    max-width: 340px !important;
+    height: 100% !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: center !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  @media (max-width: 1024px) {
-    .calendar-kanban-board {
-      flex-direction: column !important;
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
-    }
-    .calendar-column {
-      width: 100% !important;
-      min-width: unset !important;
-      margin-bottom: 15px;
-    }
+  .calendar-column.is-today {
+    background: rgba(0, 212, 170, 0.08) !important;
+    border-color: rgba(0, 212, 170, 0.3) !important;
+  }
+
+  .calendar-col-header {
+    margin-bottom: 15px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .calendar-cards-list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding-bottom: 20px !important;
   }
 
   .calendar-route-card {
@@ -3803,6 +3934,48 @@
 /* Password centering */
 /* Centering login inputs */
 #loginUser, #loginPass { text-align: center; }
+
+/* Driver History List Styles */
+.history-route-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 5px;
+}
+
+.history-route-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-primary);
+  transform: translateX(4px);
+}
+
+.history-route-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-route-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.history-route-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.history-route-item .badge {
+  font-size: 0.6rem !important;
+  padding: 2px 6px !important;
+}
 
 
 
