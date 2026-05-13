@@ -2142,9 +2142,13 @@
   }
   
   .login-overlay input {
+    text-align: center !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .login-overlay input::placeholder {
     text-align: center;
-    padding-left: 14px !important;
-    padding-right: 14px !important;
   }
 
   .btn-block {
@@ -3180,6 +3184,10 @@
   .login-card { text-align: center;
     padding: 28px 22px !important;
     width: 95% !important;
+  }
+  
+  .login-card .input-with-icon i {
+    display: none;
   }
 
   /* Remove hover transforms on touch devices */
