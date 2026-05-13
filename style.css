@@ -1986,8 +1986,9 @@
     z-index: 10;
   }
   
-  .marker-pin.marker-origin { background: var(--text-white) !important; }
-  .marker-pin.marker-origin::after { background: var(--bg-dark) !important; }
+  .marker-pin.marker-origin { background: #6366f1 !important; } /* Indigo/Slate Blue for Origin */
+  .marker-pin.marker-origin::after { background: transparent !important; }
+  .marker-pin.marker-origin + i { color: white !important; }
   
   .marker-pin.marker-done { background: #4ade80 !important; }
   .marker-pin.marker-active { background: var(--accent-secondary) !important; animation: pulse 2s infinite; }
@@ -3939,9 +3940,9 @@
 
 /* Remove sidebar and its toggle on mobile */
 @media (max-width: 768px) {
-  .sidebar, .sidebar-overlay, #btnOpenSidebar { display: none !important; }
-  .mobile-header { justify-content: center !important; }
-  .mobile-header div { margin-left: 0 !important; }
+  .sidebar, .sidebar-overlay, #btnOpenSidebar { display: flex !important; }
+  .mobile-header { justify-content: space-between !important; }
+  .mobile-header div { margin-left: 10px !important; }
 }
 
 

@@ -242,7 +242,7 @@
 
       el.innerHTML = `
         <div class="marker-pin ${pinClass}"></div>
-        <i class="${isOrigin ? 'ri-map-pin-user-fill' : ''}">${isOrigin ? '' : number}</i>
+        <i class="${isOrigin ? 'ri-home-4-fill' : ''}">${isOrigin ? '' : number}</i>
         <div class="marker-label">${label}</div>
       `;
   
