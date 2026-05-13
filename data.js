@@ -69,7 +69,8 @@ const StorageManager = {
       if (uError) throw uError;
       this._cache.users = users || [];
 
-      const hasAdmin = this._cache.users.some(u => u.username === 'admin');`n      if (!hasAdmin) {
+      const hasAdmin = this._cache.users.some(u => u.username === 'admin');
+      if (!hasAdmin) {
         console.log("Data: Criando admin padrão...");
         await this.saveUser({
           name: 'Administrador',
@@ -293,12 +294,19 @@ const StorageManager = {
 
   // ─── AUTH ──────────────────────────────────────────────────────────────────
   async login(username, password) {
+    console.log(`Auth: Tentativa de login para '${username}'. Usuários carregados: ${this._cache.users.length}`);
     let user = this._cache.users.find(u => u.username === username && u.password === password);
     if (!user) {
+      console.log("Auth: Usuário não encontrado no cache. Buscando no servidor...");
       await this.fetchUsers();
       user = this._cache.users.find(u => u.username === username && u.password === password);
     }
-    if (user) { this.setCurrentUser(user); return true; }
+    if (user) { 
+      console.log("Auth: Login bem-sucedido!");
+      this.setCurrentUser(user); 
+      return true; 
+    }
+    console.warn("Auth: Login falhou (usuário ou senha incorretos).");
     return false;
   },
 
