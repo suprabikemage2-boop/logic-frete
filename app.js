@@ -304,6 +304,17 @@
     btnAccessMap?.addEventListener('click', () => navigateToMap());
 
     function showMainView(viewId) {
+      // Add current view class to mainAppWrapper for CSS scoping
+      const wrapper = document.getElementById('mainAppWrapper');
+      if (wrapper) {
+        // Remove existing view classes
+        wrapper.classList.forEach(cls => {
+          if (cls.startsWith('view-')) wrapper.classList.remove(cls);
+        });
+        const viewClass = viewId === 'map' ? 'view-map' : `view-${viewId.replace('main', '').replace('View', '').toLowerCase()}`;
+        wrapper.classList.add(viewClass);
+      }
+
       if (viewId === 'map') {
         allMainViews.forEach(v => { if(v) v.style.display = 'none'; });
         mapAreaElements.forEach(el => {

@@ -3346,12 +3346,17 @@
     border: none !important;
     box-shadow: none !important;
     height: auto !important;
-    display: flex !important;
+    display: none !important; /* Hide by default on mobile */
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 0 !important;
     padding: 10px !important;
     pointer-events: none !important; /* Allow clicking map through container */
+  }
+
+  /* Show only on map screen */
+  .view-map .map-controls-overlay {
+    display: flex !important;
   }
 
   .address-search-wrap {
@@ -3374,6 +3379,7 @@
   }
 
   .map-actions-group {
+    display: none !important; /* Hide by default on mobile */
     pointer-events: auto !important;
     position: fixed !important;
     bottom: calc(var(--mobile-nav-h) + var(--safe-b) + 20px) !important;
@@ -3385,6 +3391,11 @@
     width: auto !important;
     z-index: 1001 !important;
     transition: bottom 0.3s ease !important;
+  }
+
+  /* Show only on map screen */
+  .view-map .map-actions-group {
+    display: flex !important;
   }
 
   /* Dynamically adjust buttons when Route Detail Panel is open */
@@ -3406,7 +3417,7 @@
     font-size: 1.5rem !important;
   }
 
-  .map-divider, .map-theme-group {
+  .map-divider, .map-theme-switcher {
     display: none !important;
   }
 
