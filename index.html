@@ -20,6 +20,14 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
+  <script>
+    // Fast session check to avoid login flicker on refresh
+    (function() {
+      if (localStorage.getItem('logic_frete_session')) {
+        document.documentElement.classList.add('is-logged-in');
+      }
+    })();
+  </script>
 </head>
 <body>
 

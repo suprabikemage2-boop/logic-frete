@@ -41,6 +41,7 @@
       console.log("Auth: Verificando estado...", currentUser ? "Logado" : "Deslogado");
 
       if (currentUser) {
+        document.documentElement.classList.add('is-logged-in');
         if (overlay) overlay.style.setProperty('display', 'none', 'important');
         if (wrapper) wrapper.style.setProperty('display', 'flex', 'important');
         applyPermissions();
@@ -58,6 +59,7 @@
           if (MapService.map) MapService.map.resize();
         }, 500);
       } else {
+        document.documentElement.classList.remove('is-logged-in');
         if (overlay) overlay.style.setProperty('display', 'flex', 'important');
         if (wrapper) wrapper.style.setProperty('display', 'none', 'important');
       }
@@ -452,6 +454,9 @@
     document.getElementById('btnLocate')?.addEventListener('click', () => MapService.locateUser());
     document.getElementById('btnFitAll')?.addEventListener('click', () => MapService.fitAll());
     document.getElementById('btnExport')?.addEventListener('click', () => StorageManager.exportData());
+
+    // Initialize RDP (Route Detail Panel) Listeners
+    initRdpListeners();
   
     // === MAP THEME SWITCHER ===
     document.querySelectorAll('.theme-btn[data-theme]').forEach(btn => {
@@ -481,45 +486,91 @@
     function setupAddressSearch(inputId, suggestionsId, latId, lngId, wrapId) {
       const input = document.getElementById(inputId);
       const suggestions = document.getElementById(suggestionsId);
+      let activeIndex = -1;
+      
+      const selectSuggestion = (res) => {
+        input.value = res.address;
+        if (latId && lngId) {
+          document.getElementById(latId).value = res.lat;
+          document.getElementById(lngId).value = res.lng;
+          if (document.getElementById(wrapId)) {
+            document.getElementById(wrapId).value = res.address;
+          }
+        }
+        suggestions.style.display = 'none';
+        activeIndex = -1;
+        
+        if (inputId === 'addressSearchInput') {
+          MapService.map.flyTo({ center: [res.lng, res.lat], zoom: 16 });
+          const marker = MapService.createMarker(res.lat, res.lng, '', 'planned');
+          marker.setPopup(new maplibregl.Popup({ offset: 25 }).setText(res.address)).togglePopup();
+        }
+      };
+
+      input.addEventListener('keydown', (e) => {
+        const items = suggestions.querySelectorAll('.suggestion-item:not(.empty)');
+        if (suggestions.style.display === 'none' || items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeIndex = (activeIndex + 1) % items.length;
+          updateActiveSuggestion(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeIndex = (activeIndex - 1 + items.length) % items.length;
+          updateActiveSuggestion(items);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (activeIndex > -1 && items[activeIndex]) {
+            items[activeIndex].click();
+          }
+        } else if (e.key === 'Escape') {
+          suggestions.style.display = 'none';
+          activeIndex = -1;
+        }
+      });
+
+      function updateActiveSuggestion(items) {
+        items.forEach((item, idx) => {
+          if (idx === activeIndex) {
+            item.classList.add('active');
+            item.scrollIntoView({ block: 'nearest' });
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      }
       
       input.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
         const query = e.target.value;
         if (query.length < 3) {
           suggestions.style.display = 'none';
+          activeIndex = -1;
           return;
         }
         
         debounceTimer = setTimeout(async () => {
           const results = await MapService.searchAddress(query);
           suggestions.innerHTML = '';
+          activeIndex = -1;
           
           if (results.length === 0) {
-            suggestions.innerHTML = '<div class="suggestion-item"><span class="suggestion-text">Nenhum endereÃ§o encontrado</span></div>';
+            suggestions.innerHTML = '<div class="suggestion-item empty"><span class="suggestion-text">Nenhum endereço encontrado</span></div>';
           } else {
-            results.forEach(res => {
+            results.forEach((res, idx) => {
               const div = document.createElement('div');
               div.className = 'suggestion-item';
               div.innerHTML = `<i class="ri-map-pin-line"></i> <span class="suggestion-text">${res.address}</span>`;
-              div.addEventListener('click', () => {
-                input.value = res.address;
-                if (latId && lngId) {
-                  document.getElementById(latId).value = res.lat;
-                  document.getElementById(lngId).value = res.lng;
-                  if (document.getElementById(wrapId)) { // Also save address string
-                     document.getElementById(wrapId).value = res.address;
-                  }
-                }
-                suggestions.style.display = 'none';
-                
-                // If it's the main map search
-                if (inputId === 'addressSearchInput') {
-                  // MapLibre uses flyTo and [lng, lat]
-                  MapService.map.flyTo({ center: [res.lng, res.lat], zoom: 16 });
-                  const marker = MapService.createMarker(res.lat, res.lng, '', 'planned');
-                  marker.setPopup(new maplibregl.Popup({ offset: 25 }).setText(res.address)).togglePopup();
-                }
+              div.addEventListener('click', () => selectSuggestion(res));
+              
+              // Also highlight on hover to keep synced
+              div.addEventListener('mouseenter', () => {
+                activeIndex = idx;
+                const items = suggestions.querySelectorAll('.suggestion-item:not(.empty)');
+                updateActiveSuggestion(items);
               });
+
               suggestions.appendChild(div);
             });
           }
@@ -527,10 +578,10 @@
         }, 500);
       });
   
-      // Hide on blur
       document.addEventListener('click', (e) => {
         if (!input.contains(e.target) && !suggestions.contains(e.target)) {
           suggestions.style.display = 'none';
+          activeIndex = -1;
         }
       });
     }
@@ -967,7 +1018,10 @@
                 <span class="badge ${st.class}">${st.label}</span>
                 <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${r.name}</span>
               </div>
-              <div class="item-actions">
+              <div class="item-actions" style="display: flex; align-items: center; gap: 8px;">
+                 <button class="btn-icon-xs" style="background: var(--accent-primary); color: var(--bg-dark); border-radius: 50%; width: 24px; height: 24px;" onclick="event.stopPropagation(); window.openDeliveryModalForRoute('${r.id}')" title="Criar Parada">
+                   <i class="ri-add-line"></i>
+                 </button>
                  <i class="ri-arrow-down-s-line expand-icon"></i>
               </div>
             </div>
@@ -1276,25 +1330,44 @@
         const div = document.createElement('div');
         div.className = 'task-card driver-item';
         div.innerHTML = `
-          <div class="task-header">
-            <div class="task-indicator" style="background: var(--primary)"></div>
-            <div class="task-title">${d.name.toUpperCase()}</div>
-            <span class="badge" style="background: var(--bg-secondary); color: var(--text-main)">${routeCount} ROTAS</span>
-          </div>
-          <div class="task-body">
-            <div class="task-row"><span class="task-label">TELEFONE:</span> <span class="task-value">${d.phone || '-'}</span></div>
-            <div class="task-row"><span class="task-label">VEÍCULO:</span> <span class="task-val">${d.vehicle || '-'}</span></div>
-            <div class="task-row"><span class="task-label">TOTAL KM:</span> <span class="task-value">${totalKm} km</span></div>
+          <div class="item-header" style="flex-direction: column; align-items: stretch; gap: 8px; padding: 12px;">
+            <div style="display:flex; justify-content: space-between; align-items: center;">
+              <div style="display:flex; align-items:center; gap:10px; overflow:hidden">
+                <div class="task-indicator" style="background: var(--accent-primary); width: 4px; height: 16px; border-radius: 2px;"></div>
+                <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${d.name.toUpperCase()}</span>
+              </div>
+              <div class="item-actions">
+                 <i class="ri-arrow-down-s-line expand-icon"></i>
+              </div>
+            </div>
             
-            <div class="driver-history-list">
-              <div class="history-title">HISTÓRICO RECENTE</div>
-              ${historyHtml || '<p class="text-muted" style="font-size:0.8rem">Nenhuma rota ainda.</p>'}
+            <div class="item-collapsed-meta" style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; color: var(--text-muted);">
+              <span><i class="ri-phone-line"></i> ${d.phone || '-'}</span>
+              <span><i class="ri-truck-line"></i> ${d.vehicle || '-'}</span>
+              <span><i class="ri-route-line"></i> ${routeCount} rotas</span>
+              <span><i class="ri-map-2-line"></i> ${totalKm} km</span>
             </div>
           </div>
-          <div class="task-footer">
-            <div class="task-date"><i class="ri-user-follow-line"></i> ${d.isUser ? 'Usuário' : 'Motorista'}</div>
-            <div class="details-actions">
-               ${(window.appPermissions?.isMaster || window.appPermissions?.isGerente) ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDriverModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+
+          <div class="item-details" style="padding: 15px; border-top: 1px solid var(--border-color);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+              <div class="meta-item"><i class="ri-user-star-line"></i> <strong>Tipo:</strong> ${d.isUser ? 'Usuário do Sistema' : 'Motorista Externo'}</div>
+              <div class="meta-item"><i class="ri-dashboard-line"></i> <strong>Total KM:</strong> ${totalKm} km acumulados</div>
+            </div>
+
+            <div class="driver-history-list">
+              <div class="section-header" style="font-size:0.75rem; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;">HISTÓRICO RECENTE DE ROTAS</div>
+              <div style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px;">
+                ${historyHtml || '<p class="text-muted" style="font-size:0.8rem; text-align: center; padding: 20px;">Nenhuma rota cadastrada para este motorista.</p>'}
+              </div>
+            </div>
+
+            <div class="details-actions" style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px; display: flex; justify-content: flex-end; gap: 10px;">
+               ${(window.appPermissions?.isMaster || window.appPermissions?.isGerente) ? `
+                 <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openDriverModalFromList('${d.id}')">
+                   <i class="ri-edit-line"></i> Editar Perfil
+                 </button>
+               ` : ''}
             </div>
           </div>
         `;
@@ -1386,6 +1459,9 @@
                       <span class="badge ${st.class}">${st.label}</span>
                       <span class="item-title" style="font-size:1rem; font-weight: 700;">${r.name}</span>
                     </div>
+                    <button class="btn-icon-xs" style="background: var(--accent-primary); color: var(--bg-dark); border-radius: 50%; width: 22px; height: 22px;" onclick="event.stopPropagation(); window.openDeliveryModalForRoute('${r.id}')" title="Criar Parada">
+                       <i class="ri-add-line"></i>
+                    </button>
                   </div>
                   <div class="item-collapsed-meta" style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; color: var(--text-muted);">
                     <span><i class="ri-steering-2-line"></i> ${driverName}</span>
@@ -1510,6 +1586,18 @@
         kanban.appendChild(col);
       }
     }
+
+    // Keyboard navigation for Calendar
+    document.addEventListener('keydown', (e) => {
+      const calendarPanel = document.getElementById('panel-calendar');
+      if (calendarPanel && calendarPanel.classList.contains('active')) {
+        if (e.key === 'ArrowLeft') {
+          window.prevWeek();
+        } else if (e.key === 'ArrowRight') {
+          window.nextWeek();
+        }
+      }
+    });
 
     // Calendar Drag and Drop Handlers
     window.handleCalendarDragOver = (e) => {
@@ -1666,6 +1754,21 @@
       
       // Show Panel
       routeDetailPanel.classList.add('show');
+
+      // Update Action Buttons based on status
+      const startBtn = document.getElementById('rdpStartBtn');
+      if (startBtn) {
+        if (route.status === 'done') {
+          startBtn.innerHTML = '<i class="ri-refresh-line"></i> Reativar';
+          startBtn.className = 'btn-warning';
+        } else if (route.status === 'active') {
+          startBtn.innerHTML = '<i class="ri-checkbox-circle-line"></i> Concluir';
+          startBtn.className = 'btn-success';
+        } else {
+          startBtn.innerHTML = '<i class="ri-play-circle-line"></i> Iniciar';
+          startBtn.className = 'btn-primary';
+        }
+      }
       
       // Map visualization
       MapService.clearMap();
@@ -1702,6 +1805,62 @@
       renderRdpStopsList(deliveries);
       MapService.fitAll();
     }
+
+    // Initialize RDP Buttons once
+    function initRdpListeners() {
+      document.getElementById('rdpClose')?.addEventListener('click', () => {
+        routeDetailPanel.classList.remove('show');
+        activeRouteId = null;
+        MapService.clearMap();
+      });
+
+      document.getElementById('rdpEditBtn')?.addEventListener('click', () => {
+        if (activeRouteId) openRouteModal(activeRouteId);
+      });
+
+      document.getElementById('rdpStartBtn')?.addEventListener('click', () => {
+        if (!activeRouteId) return;
+        const route = StorageManager.getRoute(activeRouteId);
+        if (route.status === 'done') {
+          updateRouteStatus(activeRouteId, 'active');
+        } else if (route.status === 'active') {
+          window.updateRouteStatusFromList(activeRouteId, 'done');
+        } else {
+          updateRouteStatus(activeRouteId, 'active');
+        }
+      });
+
+      document.getElementById('rdpDeleteBtn')?.addEventListener('click', () => {
+        if (activeRouteId) window.deleteRoute(activeRouteId);
+      });
+
+      document.getElementById('rdpOptimize')?.addEventListener('click', async () => {
+        if (!activeRouteId) return;
+        showToast('Otimizando rota...');
+        const route = StorageManager.getRoute(activeRouteId);
+        const deliveries = StorageManager.getDeliveriesByRoute(activeRouteId);
+        if (deliveries.length <= 1) return;
+
+        // Persist new order (Simple sort by proximity or predefined logic)
+        try {
+          const promises = deliveries.map((d, i) => {
+            d.order = i + 1;
+            return StorageManager.saveDelivery(d);
+          });
+          await Promise.all(promises);
+          showToast('Rota otimizada!');
+          loadRouteToMap(activeRouteId);
+        } catch (err) {
+          showToast('Erro ao otimizar: ' + err.message, 'error');
+        }
+      });
+
+      document.getElementById('rdpAddStop')?.addEventListener('click', () => {
+        if (activeRouteId) openDeliveryModal(null, activeRouteId);
+      });
+    }
+
+    // Call initRdpListeners inside initApp
 
     function renderRdpStopsList(stops) {
       const list = document.getElementById('rdpStopsList');

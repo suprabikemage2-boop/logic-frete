@@ -1462,13 +1462,17 @@
   }
   
   .suggestion-item {
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--border-color);
+    padding: 10px 15px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 10px;
-    transition: background 0.2s;
+    transition: var(--transition);
+  }
+  
+  .suggestion-item:hover, .suggestion-item.active {
+    background: var(--bg-hover);
+    color: var(--accent-primary);
   }
   
   .suggestion-item:last-child {
@@ -3581,6 +3585,15 @@
   justify-content: center;
   z-index: 9999;
   backdrop-filter: blur(10px);
+}
+
+/* Fast-restoration session support */
+.is-logged-in .login-overlay {
+  display: none !important;
+}
+
+.is-logged-in #mainAppWrapper {
+  display: flex !important;
 }
 
 .login-card { text-align: center;
