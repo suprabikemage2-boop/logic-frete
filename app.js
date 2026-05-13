@@ -3,19 +3,46 @@
  * Ties UI, StorageManager, and MapService together.
  */
 
-  // document.addEventListener('DOMContentLoaded', () => {
+  const initApp = () => {
+    // === UI HELPERS ===
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      let icon = 'ri-checkbox-circle-line';
+      if (type === 'error') icon = 'ri-error-warning-line';
+      if (type === 'warning') icon = 'ri-alert-line';
+
+      toast.innerHTML = `
+        <i class="${icon}"></i>
+        <span>${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      // Auto remove
+      setTimeout(() => {
+        toast.classList.add('fadeOut');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
     // === AUTHENTICATION LOGIC ===
-    const loginOverlay = document.getElementById('loginOverlay');
-    const mainAppWrapper = document.getElementById('mainAppWrapper');
-    const loginForm = document.getElementById('loginForm');
-    const btnLogout = document.getElementById('btnLogout');
     let currentUser = null;
 
     function checkAuth() {
+      const overlay = document.getElementById('loginOverlay');
+      const wrapper = document.getElementById('mainAppWrapper');
       currentUser = StorageManager.getCurrentUser();
+      
+      console.log("Auth: Verificando estado...", currentUser ? "Logado" : "Deslogado");
+
       if (currentUser) {
-        if (loginOverlay) loginOverlay.style.display = 'none';
-        if (mainAppWrapper) mainAppWrapper.style.display = 'flex';
+        if (overlay) overlay.style.setProperty('display', 'none', 'important');
+        if (wrapper) wrapper.style.setProperty('display', 'flex', 'important');
         applyPermissions();
         
         // Ensure default tab is selected based on role
@@ -31,42 +58,69 @@
           if (MapService.map) MapService.map.resize();
         }, 500);
       } else {
-        if (loginOverlay) loginOverlay.style.display = 'flex';
-        if (mainAppWrapper) mainAppWrapper.style.display = 'none';
+        if (overlay) overlay.style.setProperty('display', 'flex', 'important');
+        if (wrapper) wrapper.style.setProperty('display', 'none', 'important');
       }
     }
+    const loginOverlay = document.getElementById('loginOverlay');
+    const mainAppWrapper = document.getElementById('mainAppWrapper');
+    const loginForm = document.getElementById('loginForm');
+    const btnLogout = document.getElementById('btnLogout');
 
     const loginError = document.getElementById('loginError');
 
-    loginForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const user = document.getElementById('loginUser').value.trim();
-      const pass = document.getElementById('loginPass').value.trim();
-      
-      try {
-        const success = await StorageManager.login(user, pass);
-        if (success) {
-          if (loginError) loginError.style.display = 'none';
-          showToast('Login realizado com sucesso!');
-          loginForm.reset();
-          checkAuth();
-          setTimeout(() => {
-            if (MapService.map) MapService.map.resize();
-          }, 100);
-        } else {
-          if (loginError) {
-            loginError.style.display = 'block';
-            loginError.style.animation = 'none';
-            loginError.offsetHeight;
-            loginError.style.animation = null; 
+    if (loginForm) {
+      loginForm.onsubmit = async (e) => {
+        e.preventDefault();
+        console.log("Auth: Formulário de login enviado.");
+        
+        const btn = loginForm.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+
+        if (!user || !pass) return;
+
+        try {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="ri-loader-4-line btn-spin"></i> Entrando...';
+          
+          console.log(`Auth: Tentando login para o usuário: ${user}`);
+          const success = await StorageManager.login(user, pass);
+
+          if (success) {
+            console.log("Auth: Login retornado com sucesso.");
+            if (loginError) loginError.style.display = 'none';
+            showToast('Login realizado com sucesso!');
+            loginForm.reset();
+            
+            // Execute the UI transition
+            checkAuth();
+            
+            // Force reload if UI doesn't transition in 1 second
+            setTimeout(() => {
+              const overlay = document.getElementById('loginOverlay');
+              if (overlay && overlay.style.display !== 'none') {
+                console.warn("Auth: Transição de UI falhou, forçando recarregamento...");
+                window.location.reload();
+              }
+            }, 1000);
+
+          } else {
+            console.warn("Auth: Credenciais inválidas.");
+            if (loginError) loginError.style.display = 'block';
+            showToast('Usuário ou senha incorretos', 'error');
           }
-          showToast('Usuário ou senha inválido!', 'error');
+        } catch (err) {
+          console.error("Login error:", err);
+          showToast('Erro de conexão: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
         }
-      } catch (err) {
-        console.error("Login error:", err);
-        showToast('Erro de conexão: ' + err.message, 'error');
-      }
-    });
+      };
+    }
 
     // Clear error message when user starts typing
     ['loginUser', 'loginPass'].forEach(id => {
@@ -921,8 +975,13 @@
           <div class="task-footer">
             <div class="task-date"><i class="ri-calendar-line"></i> </div>
             <div class="details-actions">
-              ${window.appPermissions?.canEditRoute ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openRouteModalFromList('${r.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+              ${window.appPermissions?.canEditRoute ? `
+                <button class="btn-icon-xs" onclick="event.stopPropagation(); window.openRouteModalFromList('${r.id}')" title="Editar"><i class="ri-edit-line"></i></button>
+                <button class="btn-icon-xs" onclick="event.stopPropagation(); window.deleteRoute('${r.id}')" title="Excluir"><i class="ri-delete-bin-line"></i></button>
+              ` : ''}
+              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.printRoute('${r.id}')" title="Imprimir"><i class="ri-printer-line"></i></button>
               <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${r.id}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
+              ${r.status !== 'done' ? `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'done')" style="padding: 2px 8px; font-size: 0.7rem;">Concluir</button>` : ''}
             </div>
           </div>
         `;
@@ -1072,8 +1131,12 @@
           <div class="task-footer">
             <div class="task-date"><i class="ri-calendar-line"></i> ${route ? formatDate(route.date) : '-'}</div>
             <div class="details-actions">
-              ${window.appPermissions?.canEditRoute ? `<button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>` : ''}
+              ${window.appPermissions?.canEditRoute ? `
+                <button class="btn-icon-xs" onclick="event.stopPropagation(); window.openDeliveryModalFromList('${d.id}')" title="Editar"><i class="ri-edit-line"></i></button>
+                <button class="btn-icon-xs" onclick="event.stopPropagation(); window.deleteDeliveryFromList('${d.id}')" title="Excluir"><i class="ri-delete-bin-line"></i></button>
+              ` : ''}
               <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
+              ${d.status !== 'delivered' ? `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateDeliveryStatus('${d.id}', 'delivered')" style="padding: 2px 8px; font-size: 0.7rem;">Entregue</button>` : ''}
             </div>
           </div>
         `;
@@ -1240,7 +1303,10 @@
                   <div class="task-row"><span class="task-label">ORIGEM:</span> <span class="task-value">${r.origin?.address || '-'}</span></div>
                 </div>
                 <div class="task-footer">
-                  <button class="btn-primary btn-sm" style="width:100%" onclick="window.viewOnMap('${r.id}')">Ver Detalhes</button>
+                  <div style="display:flex; gap:8px; width:100%">
+                    <button class="btn-primary btn-sm" style="flex:1" onclick="window.viewOnMap('${r.id}')">Ver no Mapa</button>
+                    <button class="btn-secondary btn-sm" style="flex:1" onclick="window.printRoute('${r.id}')"><i class="ri-printer-line"></i> Imprimir</button>
+                  </div>
                 </div>
               `;
               list.appendChild(div);
@@ -1437,8 +1503,214 @@
       }
     }
 
+    // === MISSING CORE FUNCTIONS ===
+    window.formatDate = function(dateStr) {
+      if (!dateStr) return '-';
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    };
+
+    function formatDate(dateStr) { return window.formatDate(dateStr); }
+
+    function openConfirmDialog(message, callback) {
+      const dialog = document.getElementById('confirmDialog');
+      const msgEl = document.getElementById('confirmMessage');
+      const btnOk = document.getElementById('confirmOk');
+      const btnCancel = document.getElementById('confirmCancel');
+
+      if (!dialog || !msgEl) return;
+
+      msgEl.innerText = message;
+      dialog.style.display = 'flex';
+      dialog.classList.add('active');
+
+      const close = () => {
+        dialog.style.display = 'none';
+        dialog.classList.remove('active');
+      };
+
+      btnOk.onclick = () => {
+        callback();
+        close();
+      };
+      btnCancel.onclick = close;
+    }
+
+    window.openConfirmDialog = openConfirmDialog;
+
+    async function updateRouteStatus(routeId, status) {
+      try {
+        const route = StorageManager.getRoute(routeId);
+        if (route) {
+          route.status = status;
+          await StorageManager.saveRoute(route);
+          showToast(`Rota atualizada para ${statusMap[status].label}`);
+          renderRoutesList();
+          refreshDashboard();
+          if (activeRouteId === routeId) loadRouteToMap(routeId);
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function loadRouteToMap(routeId, readOnly = false) {
+      activeRouteId = routeId;
+      const route = StorageManager.getRoute(routeId);
+      if (!route) return;
+
+      const deliveries = StorageManager.getDeliveriesByRoute(routeId);
+      
+      // Update UI Panel
+      document.getElementById('rdpTitle').innerText = route.name;
+      const st = statusMap[route.status] || statusMap['planned'];
+      const badge = document.getElementById('rdpBadge');
+      badge.innerText = st.label;
+      badge.className = `rdp-badge badge ${st.class}`;
+      
+      document.getElementById('rdpStops').innerText = `${deliveries.length} paradas`;
+      
+      // Show Panel
+      routeDetailPanel.classList.add('show');
+      
+      // Map visualization
+      MapService.clearMap();
+      if (route.origin && route.origin.lat) {
+        MapService.createMarker(route.origin.lat, route.origin.lng, 'O', 'planned');
+      }
+      
+      deliveries.forEach((d, idx) => {
+        MapService.createMarker(d.lat, d.lng, idx + 1, d.status);
+      });
+
+      if (deliveries.length > 0) {
+        const waypoints = deliveries.map(d => [d.lng, d.lat]);
+        if (route.origin && route.origin.lat) {
+          waypoints.unshift([route.origin.lng, route.origin.lat]);
+        }
+        
+        try {
+          const result = await MapService.drawRoute(waypoints);
+          document.getElementById('rdpDistance').innerText = result.distance + ' km';
+          document.getElementById('rdpDuration').innerText = result.duration + ' min';
+          
+          // Save distance back to route if changed significantly
+          if (Math.abs(route.distanceKm - result.distance) > 0.5) {
+            route.distanceKm = result.distance;
+            route.durationMin = result.duration;
+            StorageManager.saveRoute(route);
+          }
+        } catch (e) {
+          console.warn("Could not draw route line", e);
+        }
+      }
+      
+      renderRdpStopsList(deliveries);
+      MapService.fitAll();
+    }
+
+    function renderRdpStopsList(stops) {
+      const list = document.getElementById('rdpStopsList');
+      if (!list) return;
+      list.innerHTML = stops.map((s, i) => `
+        <li class="stop-item">
+          <div class="stop-marker">${i + 1}</div>
+          <div class="stop-info">
+            <div class="stop-title">${s.recipient}</div>
+            <div class="stop-address">${s.address}</div>
+          </div>
+          <div class="stop-actions">
+            <button onclick="window.updateDeliveryStatus('${s.id}', 'delivered')" title="Entregue"><i class="ri-checkbox-circle-line"></i></button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function renderWeeklyChart() {
+      const wrapper = document.getElementById('weeklyChartBars');
+      if (!wrapper) return;
+      
+      const routes = StorageManager.getRoutes();
+      const now = new Date();
+      const dailyKms = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+      
+      routes.forEach(r => {
+        const d = new Date(r.date + 'T12:00:00'); // avoid timezone shifts
+        const day = d.getDay(); // 0 is Sun, 1 is Mon...
+        const index = day === 0 ? 6 : day - 1; // map to 0=Mon...6=Sun
+        
+        // Only if it's "this week" (simplified)
+        dailyKms[index] += parseFloat(String(r.distanceKm).replace(',', '.')) || 0;
+      });
+
+      const max = Math.max(...dailyKms, 10);
+      wrapper.innerHTML = dailyKms.map(km => `
+        <div class="chart-bar" style="height: ${(km / max) * 100}%" title="${km.toFixed(1)} km"></div>
+      `).join('');
+    }
+
+    // === WINDOW EXPOSURE ===
+    window.viewOnMap = (id) => {
+      document.getElementById('tab-map').click();
+      loadRouteToMap(id);
+    };
+    
+    window.viewOnMapReadOnly = (id) => {
+      document.getElementById('tab-map').click();
+      loadRouteToMap(id, true);
+    };
+
+    window.openRouteModalFromList = (id) => openRouteModal(id);
+    window.openDriverModalFromList = (id) => openDriverModal(id);
+    window.openUserModalFromList = (id) => openUserModal(id);
+    
+    window.deleteRoute = (id) => {
+      openConfirmDialog("Excluir esta rota permanentemente?", async () => {
+        await StorageManager.deleteRoute(id);
+        showToast("Rota excluída");
+        renderRoutesList();
+        refreshDashboard();
+      });
+    };
+
+    window.deleteUserFromList = (id) => {
+      openConfirmDialog("Excluir este usuário?", async () => {
+        await StorageManager.deleteUser(id);
+        showToast("Usuário excluído");
+        renderUsersList();
+      });
+    };
+
+    window.deleteDeliveryFromList = (id) => {
+      openConfirmDialog("Remover esta parada?", async () => {
+        const d = StorageManager.getDeliveries().find(x => x.id === id);
+        const rid = d ? d.routeId : null;
+        await StorageManager.deleteDelivery(id);
+        showToast("Parada removida");
+        renderRoutesList();
+        renderDeliveriesList();
+        if (rid === activeRouteId) loadRouteToMap(rid);
+      });
+    };
+
+    window.updateDeliveryStatus = async (id, status) => {
+      const d = StorageManager.getDeliveries().find(x => x.id === id);
+      if (d) {
+        d.status = status;
+        await StorageManager.saveDelivery(d);
+        showToast(`Status atualizado: ${status}`);
+        if (d.routeId === activeRouteId) loadRouteToMap(d.routeId);
+      }
+    };
+
     initializeApp();
-  // });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
 
 
 
