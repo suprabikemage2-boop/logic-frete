@@ -1640,6 +1640,12 @@
     font-weight: 500;
   }
   
+  .login-form label {
+    text-align: center;
+    display: block;
+    width: 100%;
+  }
+  
   /* ==========================================================================
      TOASTS
      ========================================================================== */
@@ -2133,6 +2139,12 @@
   .input-with-icon input {
     padding-left: 45px;
     width: 100%;
+  }
+  
+  .login-overlay input {
+    text-align: center;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
   }
 
   .btn-block {
@@ -3543,7 +3555,8 @@
 
 
 /* Password centering */
-#loginPass { text-align: center; }
+/* Centering login inputs */
+#loginUser, #loginPass { text-align: center; }
 
 
 
