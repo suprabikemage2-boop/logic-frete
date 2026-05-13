@@ -3111,32 +3111,42 @@
 
   /* === CALENDAR === */
   .calendar-kanban-board {
-  display: flex;
-  gap: 15px;
-  overflow-x: auto;
-  padding: 10px 5px;
-  flex: 1;
-  min-height: 0;
-  margin-top: 20px;
-}
-
-@media (max-width: 1024px) {
-  .calendar-kanban-board {
-    flex-direction: column !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 10px 5px;
+    flex: 1;
+    min-height: 0;
+    margin-top: 10px;
   }
-}
 
-  .calendar-kanban-board::-webkit-scrollbar {
-    display: none;
+  .calendar-column {
+    width: 320px;
+    min-width: 320px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  @media (max-width: 1024px) {
+    .calendar-kanban-board {
+      flex-direction: column !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+    }
+    .calendar-column {
+      width: 100% !important;
+      min-width: unset !important;
+      margin-bottom: 15px;
+    }
   }
 
   .calendar-nav-controls {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px 12px;
-    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
   }
 
   /* === STOP ITEMS === */
@@ -3517,38 +3527,7 @@
   .mobile-header div { margin-left: 0 !important; }
 }
 
-/* Vertical Kanban Calendar */
-.calendar-kanban-board {
-  display: flex;
-  gap: 15px;
-  overflow-x: auto;
-  padding: 10px 5px;
-  flex: 1;
-  min-height: 0;
-  margin-top: 20px;
-}
 
-@media (max-width: 1024px) {
-  .calendar-kanban-board {
-    flex-direction: column !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-  }
-}
-
-.calendar-column {
-  width: 300px;
-  min-width: 300px;
-  height: auto !important;
-  min-height: 200px;
-}
-
-@media (max-width: 1024px) {
-  .calendar-column {
-    width: 100% !important;
-    min-width: unset !important;
-  }
-}
 
 
 
