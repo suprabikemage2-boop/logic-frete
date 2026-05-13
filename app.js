@@ -961,27 +961,43 @@
         }
 
         div.innerHTML = `
-          <div class="task-header">
-            <div class="task-indicator ${st.class}"></div>
-            <div class="task-title">${r.name.toUpperCase()}</div>
+          <div class="item-header">
+            <div style="display:flex; align-items:center; gap:10px; overflow:hidden">
+              <span class="badge ${st.class}">${st.label}</span>
+              <span class="item-title">${r.name}</span>
+            </div>
+            <div class="item-actions">
+               <i class="ri-arrow-down-s-line expand-icon"></i>
+            </div>
           </div>
-          <div class="task-body">
-            <div class="task-row"><span class="task-label">MOTORISTA:</span> <span class="task-value">${driverDisplay}</span></div>
-            <div class="task-row"><span class="task-label">PARADAS:</span> <span class="task-value">${dCount}</span></div>
-            <div class="task-row"><span class="task-label">PRÉVIA:</span> <span class="task-value text-muted" style="font-size:0.75rem">${stopsPreview}</span></div>
-            <div class="task-row"><span class="task-label">ENDEREÇO:</span> <span class="task-value">${r.origin?.address || '-'}</span></span></div>
-            ${r.notes ? `<div class="task-notes">${r.notes}</div>` : ''}
-          </div>
-          <div class="task-footer">
-            <div class="task-date"><i class="ri-calendar-line"></i> </div>
-            <div class="details-actions">
+          <div class="item-details">
+            <div class="route-meta-grid">
+              <div class="meta-item"><i class="ri-calendar-line"></i> ${formatDate(r.date)}</div>
+              <div class="meta-item"><i class="ri-steering-2-line"></i> ${driverDisplay}</div>
+              <div class="meta-item"><i class="ri-map-pin-line"></i> ${dCount} paradas</div>
+              <div class="meta-item"><i class="ri-map-2-line"></i> ${r.distanceKm || '0'} km</div>
+            </div>
+            
+            ${r.notes ? `<div class="route-notes-preview"><i class="ri-information-line"></i> ${r.notes}</div>` : ''}
+            
+            <div style="margin-top:15px">
+              <div class="section-header" style="font-size:0.7rem; margin-bottom:10px">ORDEM DAS PARADAS (Arraste para reordenar)</div>
+              <div class="stops-detail-list" ondragover="window.handleStopDragOver(event)" ondrop="window.handleStopDrop(event, '${r.id}')">
+                ${stopsHtml}
+              </div>
+            </div>
+
+            <div class="details-actions" style="margin-top:15px; border-top:1px solid var(--border-color); padding-top:12px; justify-content: flex-end; gap: 10px;">
               ${window.appPermissions?.canEditRoute ? `
-                <button class="btn-icon-xs" onclick="event.stopPropagation(); window.openRouteModalFromList('${r.id}')" title="Editar"><i class="ri-edit-line"></i></button>
-                <button class="btn-icon-xs" onclick="event.stopPropagation(); window.deleteRoute('${r.id}')" title="Excluir"><i class="ri-delete-bin-line"></i></button>
+                <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.openRouteModalFromList('${r.id}')"><i class="ri-edit-line"></i> Editar Rota</button>
               ` : ''}
-              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.printRoute('${r.id}')" title="Imprimir"><i class="ri-printer-line"></i></button>
-              <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${r.id}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
-              ${r.status !== 'done' ? `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'done')" style="padding: 2px 8px; font-size: 0.7rem;">Concluir</button>` : ''}
+              <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.printRoute('${r.id}')"><i class="ri-printer-line"></i> Imprimir Rota</button>
+              <button class="btn-secondary btn-xs" onclick="event.stopPropagation(); window.viewOnMap('${r.id}')"><i class="ri-map-2-line"></i> Ver no Mapa</button>
+              
+              ${r.status === 'done' 
+                ? `<button class="btn-warning btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'active')"><i class="ri-refresh-line"></i> Reativar Rota</button>` 
+                : `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateRouteStatusFromList('${r.id}', 'done')"><i class="ri-check-line"></i> Concluir Rota</button>`
+              }
             </div>
           </div>
         `;
@@ -1005,7 +1021,53 @@
       });
     }
 
-    // Global helpers for list actions
+    // Reordering logic
+    let draggedStopId = null;
+    window.handleStopDragStart = (e, stopId) => {
+      draggedStopId = stopId;
+      e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    };
+    window.handleStopDragEnd = (e) => {
+      e.target.classList.remove('dragging');
+    };
+    window.handleStopDragOver = (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const list = e.currentTarget;
+      list.classList.add('drag-over');
+    };
+    window.handleStopDrop = async (e, routeId, targetStopId = null) => {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      if (!draggedStopId) return;
+
+      const stops = StorageManager.getDeliveriesByRoute(routeId);
+      const draggedIdx = stops.findIndex(s => s.id === draggedStopId);
+      let targetIdx = targetStopId ? stops.findIndex(s => s.id === targetStopId) : stops.length;
+
+      if (draggedIdx === -1) return;
+
+      // Reorder locally
+      const [draggedItem] = stops.splice(draggedIdx, 1);
+      stops.splice(targetIdx, 0, draggedItem);
+
+      // Update order property and save
+      try {
+        const promises = stops.map((s, idx) => {
+          s.order = idx + 1;
+          s.routeId = routeId; // Ensure it stays in the right route
+          return StorageManager.saveDelivery(s);
+        });
+        await Promise.all(promises);
+        showToast('Ordem das paradas atualizada');
+        renderRoutesList();
+        if (activeRouteId === routeId) loadRouteToMap(routeId);
+      } catch (err) {
+        showToast('Erro ao reordenar: ' + err.message, 'error');
+      }
+    };
+
     window.openDeliveryModalFromList = (id) => openDeliveryModal(id);
     window.updateRouteStatusFromList = (id, status) => {
       if (status === 'done') {
@@ -1293,19 +1355,23 @@
               const div = document.createElement('div');
               div.className = 'task-card list-item';
               div.innerHTML = `
-                <div class="task-header">
-                  <div class="task-indicator ${st.class}"></div>
-                  <div class="task-title">${r.name.toUpperCase()}</div>
+                <div class="item-header">
+                  <div style="display:flex; align-items:center; gap:8px">
+                    <span class="badge ${st.class}">${st.label}</span>
+                    <span class="item-title" style="font-size:0.9rem">${r.name}</span>
+                  </div>
                 </div>
-                <div class="task-body">
-                  <div class="task-row"><span class="task-label">MOTORISTA:</span> <span class="task-value">${driverName}</span></div>
-                  <div class="task-row"><span class="task-label">PARADAS:</span> <span class="task-value">${stops.length}</span></div>
-                  <div class="task-row"><span class="task-label">ORIGEM:</span> <span class="task-value">${r.origin?.address || '-'}</span></div>
-                </div>
-                <div class="task-footer">
-                  <div style="display:flex; gap:8px; width:100%">
-                    <button class="btn-primary btn-sm" style="flex:1" onclick="window.viewOnMap('${r.id}')">Ver no Mapa</button>
-                    <button class="btn-secondary btn-sm" style="flex:1" onclick="window.printRoute('${r.id}')"><i class="ri-printer-line"></i> Imprimir</button>
+                <div class="item-body" style="padding: 10px 15px">
+                   <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px">
+                     <i class="ri-steering-2-line"></i> ${driverName} &bull; <i class="ri-map-pin-line"></i> ${stops.length} paradas
+                   </div>
+                   <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                    <button class="btn-primary btn-xs" style="flex:1; min-width: 80px;" onclick="window.viewOnMap('${r.id}')">Mapa</button>
+                    <button class="btn-secondary btn-xs" style="flex:1; min-width: 80px;" onclick="window.printRoute('${r.id}')">Print</button>
+                    ${r.status === 'done' 
+                      ? `<button class="btn-warning btn-xs" style="flex:1; min-width: 80px;" onclick="window.updateRouteStatusFromList('${r.id}', 'active')">Reativar</button>` 
+                      : `<button class="btn-success btn-xs" style="flex:1; min-width: 80px;" onclick="window.updateRouteStatusFromList('${r.id}', 'done')">Concluir</button>`
+                    }
                   </div>
                 </div>
               `;

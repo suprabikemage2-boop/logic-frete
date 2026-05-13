@@ -249,8 +249,20 @@
     padding: 4px 8px;
     font-size: 0.8rem;
   }
-  .btn-add-small:hover {
-    background: rgba(0, 212, 170, 0.1);
+  .btn-warning {
+    background: #f59e0b;
+    color: #000;
+  }
+  .btn-warning:hover {
+    background: #d97706;
+  }
+  
+  .btn-success {
+    background: #22c55e;
+    color: #fff;
+  }
+  .btn-success:hover {
+    background: #16a34a;
   }
   
   /* ==========================================================================
