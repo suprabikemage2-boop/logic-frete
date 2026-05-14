@@ -504,6 +504,7 @@
     document.getElementById('btnTrafficDesktop')?.addEventListener('click', handleTrafficToggle);
 
     // === SEARCH SUGGESTIONS LOGIC (Nominatim) ===
+    let currentSearchMarker = null;
     let debounceTimer;
     function setupAddressSearch(inputId, suggestionsId, latId, lngId, wrapId) {
       const input = document.getElementById(inputId);
@@ -524,8 +525,10 @@
         
         if (inputId === 'addressSearchInput') {
           MapService.map.flyTo({ center: [res.lng, res.lat], zoom: 16 });
-          const marker = MapService.createMarker(res.lat, res.lng, '', 'planned');
-          marker.setPopup(new maplibregl.Popup({ offset: 25 }).setText(res.address)).togglePopup();
+          if (currentSearchMarker) currentSearchMarker.remove();
+          currentSearchMarker = MapService.createMarker(res.lat, res.lng, '', 'planned');
+          currentSearchMarker.setPopup(new maplibregl.Popup({ offset: 25 }).setText(res.address)).togglePopup();
+          document.getElementById('clearSearch').style.display = 'block';
         }
       };
 
@@ -566,6 +569,11 @@
       input.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
         const query = e.target.value;
+        
+        if (inputId === 'addressSearchInput') {
+          document.getElementById('clearSearch').style.display = query.length > 0 ? 'block' : 'none';
+        }
+        
         if (query.length < 3) {
           suggestions.style.display = 'none';
           activeIndex = -1;
@@ -613,8 +621,12 @@
     setupAddressSearch('deliveryAddressInput', 'deliverySuggestions', 'deliveryLat', 'deliveryLng', 'deliveryAddr');
   
     document.getElementById('clearSearch').addEventListener('click', () => {
-      document.getElementById('addressSearchInput').value = ''
-      MapService.clearMap();
+      document.getElementById('addressSearchInput').value = '';
+      document.getElementById('clearSearch').style.display = 'none';
+      if (currentSearchMarker) {
+        currentSearchMarker.remove();
+        currentSearchMarker = null;
+      }
     });
 
     // CPF/CNPJ Mask & Limit
@@ -1378,7 +1390,7 @@
                 <button class="btn-icon-xs" onclick="event.stopPropagation(); window.deleteDeliveryFromList('${d.id}')" title="Excluir"><i class="ri-delete-bin-line"></i></button>
               ` : ''}
               <button class="btn-icon-xs" onclick="event.stopPropagation(); window.viewOnMap('${d.routeId}')" title="Ver no Mapa"><i class="ri-map-2-line"></i></button>
-              ${d.status !== 'delivered' ? `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateDeliveryStatus('${d.id}', 'delivered')" style="padding: 2px 8px; font-size: 0.7rem;">Entregue</button>` : ''}
+              ${d.status !== 'delivered' ? `<button class="btn-primary btn-xs" onclick="event.stopPropagation(); window.updateDeliveryStatus('${d.id}', 'delivered')" style="padding: 2px 8px; font-size: 0.7rem;"><i class="ri-check-double-line"></i> Entregue</button>` : ''}
             </div>
           </div>
         `;
@@ -1588,11 +1600,11 @@
                   </div>
                   
                   <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px;">
-                    <button class="btn-primary btn-xs" onclick="window.viewOnMap('${r.id}')" style="padding: 8px 4px;">Mapa</button>
-                    <button class="btn-secondary btn-xs" onclick="window.printRoute('${r.id}')" style="padding: 8px 4px;">Print</button>
+                    <button class="btn-primary btn-xs" onclick="window.viewOnMap('${r.id}')" style="padding: 6px 2px; font-size: 0.75rem;"><i class="ri-map-2-line"></i> Mapa</button>
+                    <button class="btn-secondary btn-xs" onclick="window.printRoute('${r.id}')" style="padding: 6px 2px; font-size: 0.75rem;"><i class="ri-printer-line"></i> Print</button>
                     ${r.status === 'done' 
-                      ? `<button class="btn-warning btn-xs" onclick="window.updateRouteStatusFromList('${r.id}', 'active')" style="padding: 8px 4px;">Reativar</button>` 
-                      : `<button class="btn-success btn-xs" onclick="window.updateRouteStatusFromList('${r.id}', 'done')" style="padding: 8px 4px;">Concluir</button>`
+                      ? `<button class="btn-warning btn-xs" onclick="window.updateRouteStatusFromList('${r.id}', 'active')" style="padding: 6px 2px; font-size: 0.75rem;"><i class="ri-refresh-line"></i> Voltar</button>` 
+                      : `<button class="btn-success btn-xs" onclick="window.updateRouteStatusFromList('${r.id}', 'done')" style="padding: 6px 2px; font-size: 0.75rem;"><i class="ri-check-line"></i> OK</button>`
                     }
                   </div>
                 </div>
@@ -1615,11 +1627,8 @@
 
       const weekDisplay = document.getElementById('calendarWeekDisplay');
       
-      // Calculate start of current week (Monday)
+      // Calculate start of current view (Today)
       const startOfWeek = new Date(calendarCurrentDate);
-      const day = startOfWeek.getDay();
-      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-      startOfWeek.setDate(diff);
       startOfWeek.setHours(0, 0, 0, 0);
 
       const endOfWeek = new Date(startOfWeek);
@@ -1706,13 +1715,13 @@
     }
 
     // Calendar Navigation Functions
-    window.prevWeek = () => {
-      calendarCurrentDate.setDate(calendarCurrentDate.getDate() - 7);
+    window.prevDay = () => {
+      calendarCurrentDate.setDate(calendarCurrentDate.getDate() - 1);
       renderCalendarView();
     };
 
-    window.nextWeek = () => {
-      calendarCurrentDate.setDate(calendarCurrentDate.getDate() + 7);
+    window.nextDay = () => {
+      calendarCurrentDate.setDate(calendarCurrentDate.getDate() + 1);
       renderCalendarView();
     };
 
@@ -1721,9 +1730,9 @@
       const calendarView = document.getElementById('mainCalendarView');
       if (calendarView && calendarView.style.display !== 'none') {
         if (e.key === 'ArrowLeft') {
-          window.prevWeek();
+          window.prevDay();
         } else if (e.key === 'ArrowRight') {
-          window.nextWeek();
+          window.nextDay();
         }
       }
     });
@@ -1735,9 +1744,9 @@
         if (Math.abs(e.deltaX) > 10 || Math.abs(e.deltaY) > 10) {
           e.preventDefault();
           if (e.deltaX > 0 || e.deltaY > 0) {
-            window.nextWeek();
+            window.nextDay();
           } else {
-            window.prevWeek();
+            window.prevDay();
           }
         }
       }, { passive: false });
@@ -1777,8 +1786,8 @@
     };
 
     // Calendar Navigation
-    document.getElementById('btnPrevWeek')?.addEventListener('click', window.prevWeek);
-    document.getElementById('btnNextWeek')?.addEventListener('click', window.nextWeek);
+    document.getElementById('btnPrevWeek')?.addEventListener('click', window.prevDay);
+    document.getElementById('btnNextWeek')?.addEventListener('click', window.nextDay);
 
     // === INITIALIZATION ===
     async function initializeApp() {
