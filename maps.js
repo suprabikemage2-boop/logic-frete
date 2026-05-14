@@ -79,10 +79,14 @@
       if (!this.map) return;
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-          this.map.flyTo({
-            center: [pos.coords.longitude, pos.coords.latitude],
-            zoom: 14
-          });
+          if (pos && pos.coords && typeof pos.coords.longitude === 'number' && typeof pos.coords.latitude === 'number') {
+            this.map.flyTo({
+              center: [pos.coords.longitude, pos.coords.latitude],
+              zoom: 14
+            });
+          }
+        }, err => {
+          console.warn("Geolocation warning:", err);
         });
       }
     },

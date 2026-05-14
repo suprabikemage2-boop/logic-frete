@@ -1345,7 +1345,7 @@
             <div style="display:flex; justify-content: space-between; align-items: center;">
               <div style="display:flex; align-items:center; gap:10px; overflow:hidden">
                 <div class="task-indicator" style="background: var(--accent-primary); width: 4px; height: 16px; border-radius: 2px;"></div>
-                <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${d.name.toUpperCase()}</span>
+                <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${(d.name || 'SEM NOME').toUpperCase()}</span>
               </div>
               <div class="item-actions">
                  <i class="ri-arrow-down-s-line expand-icon"></i>
