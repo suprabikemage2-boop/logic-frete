@@ -1694,7 +1694,7 @@
             };
             
             card.onclick = () => {
-              navigateToMap(r.id);
+              window.viewOnMap(r.id);
             };
             
             cardsList.appendChild(card);
@@ -1705,10 +1705,21 @@
       }
     }
 
+    // Calendar Navigation Functions
+    window.prevWeek = () => {
+      calendarCurrentDate.setDate(calendarCurrentDate.getDate() - 7);
+      renderCalendarView();
+    };
+
+    window.nextWeek = () => {
+      calendarCurrentDate.setDate(calendarCurrentDate.getDate() + 7);
+      renderCalendarView();
+    };
+
     // Keyboard navigation for Calendar
     document.addEventListener('keydown', (e) => {
-      const calendarPanel = document.getElementById('panel-calendar');
-      if (calendarPanel && calendarPanel.classList.contains('active')) {
+      const calendarView = document.getElementById('mainCalendarView');
+      if (calendarView && calendarView.style.display !== 'none') {
         if (e.key === 'ArrowLeft') {
           window.prevWeek();
         } else if (e.key === 'ArrowRight') {
@@ -1766,15 +1777,8 @@
     };
 
     // Calendar Navigation
-    document.getElementById('btnPrevWeek')?.addEventListener('click', () => {
-      calendarCurrentDate.setDate(calendarCurrentDate.getDate() - 7);
-      renderCalendarView();
-    });
-
-    document.getElementById('btnNextWeek')?.addEventListener('click', () => {
-      calendarCurrentDate.setDate(calendarCurrentDate.getDate() + 7);
-      renderCalendarView();
-    });
+    document.getElementById('btnPrevWeek')?.addEventListener('click', window.prevWeek);
+    document.getElementById('btnNextWeek')?.addEventListener('click', window.nextWeek);
 
     // === INITIALIZATION ===
     async function initializeApp() {
