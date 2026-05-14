@@ -1373,24 +1373,36 @@
   /* Floating Overlay over map */
   .map-controls-overlay {
     position: absolute;
-    top: 10px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    width: 95%;
-    max-width: 800px;
-    height: 54px;
-    z-index: 1000; /* Above map */
+    width: 90%;
+    max-width: 600px;
+    height: 50px;
+    z-index: 1000;
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 0 10px;
-    background: rgba(13, 25, 48, 0.75);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    gap: 10px;
+    padding: 0 15px;
+    background: rgba(13, 25, 48, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 100px; /* Pill shape */
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
-    animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    transition: width 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .map-controls-overlay {
+      top: 15px;
+      width: calc(100% - 30px);
+      height: 48px;
+      border-radius: 10px;
+    }
+    .map-actions-group {
+      display: none; /* Hide extra map buttons on mobile to focus on search bar centralization */
+    }
   }
   
   .address-search-wrap {

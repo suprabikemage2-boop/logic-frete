@@ -28,10 +28,11 @@
         style: this.themes.light, // Default to light mode
         center: this.defaultCenter,
         zoom: this.defaultZoom,
-        attributionControl: false
+        attributionControl: false,
+        touchZoomRotate: true // Enable pinch to zoom and rotation
       });
   
-      this.map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+      // NavigationControl removed as requested to rely on gestures
       
       this.map.on('load', () => {
         this.locateUser();

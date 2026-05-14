@@ -925,6 +925,92 @@
       }
     });
   
+    // === USER MODAL LOGIC ===
+    const modalUser = document.getElementById('modalUser');
+    const btnNewUserMain = document.getElementById('btnNewUserMain');
+    const closeModalUser = document.getElementById('closeModalUser');
+    const cancelModalUser = document.getElementById('cancelModalUser');
+    const saveUserBtn = document.getElementById('saveUser');
+    let editingUserId = null;
+
+    function openUserModal(userId = null) {
+      editingUserId = userId;
+      const title = document.getElementById('modalUserTitle');
+      
+      if (userId) {
+        title.innerText = 'Editar Usuário';
+        const user = StorageManager.getUsers().find(u => u.id === userId);
+        if (!user) return closeUserModal();
+        
+        document.getElementById('userName').value = user.name || '';
+        document.getElementById('userUsername').value = user.username || '';
+        document.getElementById('userPassword').value = user.password || '';
+        document.getElementById('userRole').value = user.role || 'Motorista';
+        
+        // Permissions
+        const perms = user.permissions || [];
+        document.getElementById('perm_view_route').checked = perms.includes('view_route');
+        document.getElementById('perm_edit_route').checked = perms.includes('edit_route');
+        document.getElementById('perm_reorder_stops').checked = perms.includes('reorder_stops');
+        document.getElementById('perm_edit_notes').checked = perms.includes('edit_notes');
+      } else {
+        title.innerText = 'Novo Usuário';
+        document.getElementById('userName').value = '';
+        document.getElementById('userUsername').value = '';
+        document.getElementById('userPassword').value = '';
+        document.getElementById('userRole').value = 'Motorista';
+        
+        document.getElementById('perm_view_route').checked = true;
+        document.getElementById('perm_edit_route').checked = false;
+        document.getElementById('perm_reorder_stops').checked = false;
+        document.getElementById('perm_edit_notes').checked = false;
+      }
+      modalUser?.classList.add('active');
+    }
+
+    function closeUserModal() {
+      modalUser?.classList.remove('active');
+    }
+
+    btnNewUserMain?.addEventListener('click', () => openUserModal());
+    closeModalUser?.addEventListener('click', closeUserModal);
+    cancelModalUser?.addEventListener('click', closeUserModal);
+
+    saveUserBtn?.addEventListener('click', async () => {
+      const name = document.getElementById('userName').value.trim();
+      const username = document.getElementById('userUsername').value.trim();
+      const password = document.getElementById('userPassword').value.trim();
+      const role = document.getElementById('userRole').value;
+
+      if (!name || !username || !password) {
+        return showToast('Preencha todos os campos obrigatórios', 'error');
+      }
+
+      const permissions = [];
+      if (document.getElementById('perm_view_route').checked) permissions.push('view_route');
+      if (document.getElementById('perm_edit_route').checked) permissions.push('edit_route');
+      if (document.getElementById('perm_reorder_stops').checked) permissions.push('reorder_stops');
+      if (document.getElementById('perm_edit_notes').checked) permissions.push('edit_notes');
+
+      const userData = {
+        id: editingUserId,
+        name,
+        username,
+        password,
+        role,
+        permissions
+      };
+
+      try {
+        await StorageManager.saveUser(userData);
+        showToast('Usuário salvo com sucesso!');
+        closeUserModal();
+        renderUsersList();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  
   
     // === RENDERING FUNCTIONS ===
   
@@ -1322,9 +1408,9 @@
           const st = statusMap[r.status] || statusMap['planned'];
           const stopsCount = StorageManager.getDeliveriesByRoute(r.id).length;
           return `
-            <div class="history-route-item" onclick="event.stopPropagation(); window.viewOnMapReadOnly('${r.id}')">
-              <div class="history-route-info">
-                <span class="history-route-name">${r.name}</span>
+            <div class="history-route-item" onclick="event.stopPropagation(); window.viewOnMapReadOnly('${r.id}')" style="flex-wrap: wrap; gap: 8px;">
+              <div class="history-route-info" style="flex: 1; min-width: 0; word-break: break-word;">
+                <span class="history-route-name" style="display: block; margin-bottom: 4px;">${r.name}</span>
                 <span class="history-route-date">
                   <div class="card-date">
                     ${formatDate(r.date)} &bull; <i class="ri-map-pin-line"></i> ${stopsCount} paradas &bull; <i class="ri-map-2-line"></i> ${r.distanceKm || '0'} km
@@ -1342,9 +1428,9 @@
         div.className = 'task-card driver-item';
         div.innerHTML = `
           <div class="item-header" style="flex-direction: column; align-items: stretch; gap: 8px; padding: 12px;">
-            <div style="display:flex; justify-content: space-between; align-items: center;">
-              <div style="display:flex; align-items:center; gap:10px; overflow:hidden">
-                <div class="task-indicator" style="background: var(--accent-primary); width: 4px; height: 16px; border-radius: 2px;"></div>
+            <div style="display:flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div style="display:flex; align-items:center; gap:10px; flex: 1; word-break: break-word; min-width: 0;">
+                <div class="task-indicator" style="background: var(--accent-primary); width: 4px; height: 16px; border-radius: 2px; flex-shrink: 0;"></div>
                 <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${(d.name || 'SEM NOME').toUpperCase()}</span>
               </div>
               <div class="item-actions">
@@ -1361,7 +1447,7 @@
           </div>
 
           <div class="item-details" style="padding: 15px; border-top: 1px solid var(--border-color);">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px;">
               <div class="meta-item"><i class="ri-user-star-line"></i> <strong>Tipo:</strong> ${d.isUser ? 'Usuário do Sistema' : 'Motorista Externo'}</div>
               <div class="meta-item"><i class="ri-dashboard-line"></i> <strong>Total KM:</strong> ${totalKm} km acumulados</div>
             </div>
@@ -1373,13 +1459,16 @@
               </div>
             </div>
 
-            <div class="details-actions" style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px; display: flex; justify-content: flex-end; gap: 10px;">
+          </div>
+
+          <div class="task-footer" style="justify-content: flex-end; padding-top: 10px; border-top: 1px solid var(--border-color); margin-top: 5px;">
+            <div class="details-actions" style="display: flex; gap: 8px;">
                ${(window.appPermissions?.isMaster || window.appPermissions?.isGerente) ? `
-                 <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')">
-                   <i class="ri-delete-bin-line"></i> Excluir Motorista
-                 </button>
                  <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openDriverModalFromList('${d.id}')">
-                   <i class="ri-edit-line"></i> Editar Perfil
+                   <i class="ri-edit-line"></i> Editar
+                 </button>
+                 <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')">
+                   <i class="ri-delete-bin-line"></i> Excluir
                  </button>
                ` : ''}
             </div>
@@ -1418,10 +1507,14 @@
             <div class="task-row"><span class="task-label">USUÁRIO:</span> <span class="task-val">${u.username}</span></div>
             <div class="task-row"><span class="task-label">CARGO:</span> <span class="task-value">${u.role}</span></div>
           </div>
-          <div class="task-footer">
-            <div class="details-actions">
-               <button class="btn-icon-xs" onclick="event.stopPropagation(); window.openUserModalFromList('${u.id}')" title="Editar"><i class="ri-edit-line"></i></button>
-               <button class="btn-icon-xs" onclick="event.stopPropagation(); window.deleteUserFromList('${u.id}')" title="Excluir"><i class="ri-delete-bin-line"></i></button>
+          <div class="task-footer" style="justify-content: flex-end; padding-top: 10px; border-top: 1px solid var(--border-color); margin-top: 10px;">
+            <div class="details-actions" style="display: flex; gap: 8px;">
+               <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openUserModalFromList('${u.id}')" title="Editar">
+                 <i class="ri-edit-line"></i> Editar
+               </button>
+               <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteUserFromList('${u.id}')" title="Excluir">
+                 <i class="ri-delete-bin-line"></i> Excluir
+               </button>
             </div>
           </div>
         `;
