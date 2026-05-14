@@ -1437,9 +1437,9 @@
         }).join('');
   
         const div = document.createElement('div');
-        div.className = 'task-card driver-item';
+        div.className = 'list-item driver-item';
         div.innerHTML = `
-          <div class="item-header" style="flex-direction: column; align-items: stretch; gap: 8px; padding: 12px;">
+          <div class="item-header" style="flex-direction: column; align-items: stretch; gap: 4px;">
             <div style="display:flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div style="display:flex; align-items:center; gap:10px; flex: 1; word-break: break-word; min-width: 0;">
                 <div class="task-indicator" style="background: var(--accent-primary); width: 4px; height: 16px; border-radius: 2px; flex-shrink: 0;"></div>
@@ -1458,7 +1458,7 @@
             </div>
           </div>
 
-          <div class="item-details" style="padding: 15px; border-top: 1px solid var(--border-color);">
+          <div class="item-details">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px;">
               <div class="meta-item"><i class="ri-user-badge-line"></i> <strong>Vínculo:</strong> ${d.isUser ? 'Interno (Usuário)' : 'Externo (Manual)'}</div>
               <div class="meta-item"><i class="ri-pin-distance-line"></i> <strong>Total KM:</strong> ${totalKm} km percorridos</div>
@@ -1489,19 +1489,8 @@
   
         div.addEventListener('click', () => {
           const wasExpanded = div.classList.contains('expanded');
-          
-          // Close others and reset icons
-          document.querySelectorAll('.driver-item.expanded').forEach(item => {
-            item.classList.remove('expanded');
-            const icon = item.querySelector('.expand-icon');
-            if (icon) icon.classList.replace('ri-arrow-up-s-line', 'ri-arrow-down-s-line');
-          });
-          
-          if (!wasExpanded) {
-            div.classList.add('expanded');
-            const icon = div.querySelector('.expand-icon');
-            if (icon) icon.classList.replace('ri-arrow-down-s-line', 'ri-arrow-up-s-line');
-          }
+          document.querySelectorAll('.driver-item.expanded').forEach(item => item.classList.remove('expanded'));
+          if (!wasExpanded) div.classList.add('expanded');
         });
         list.appendChild(div);
       });
