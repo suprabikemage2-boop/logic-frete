@@ -96,6 +96,7 @@
             if (loginError) loginError.style.display = 'none';
             showToast('Login realizado com sucesso!');
             loginForm.reset();
+            document.activeElement?.blur(); // Close keyboard
             
             // Execute the UI transition
             checkAuth();
@@ -376,26 +377,6 @@
       });
     });
 
-    // === KEYBOARD NAVIGATION ===
-    document.addEventListener('keydown', (e) => {
-      const isModalOpen = document.querySelector('.modal-overlay.active, .confirm-dialog.active');
-      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
-      if (isModalOpen || isTyping) return;
-
-      const activeTab = document.querySelector('.nav-tab.active');
-      if (!activeTab) return;
-
-      const tabs = Array.from(document.querySelectorAll('.nav-tab:not([style*="display: none"])'));
-      const currentIndex = tabs.indexOf(activeTab);
-
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        const nextIndex = (currentIndex + 1) % tabs.length;
-        tabs[nextIndex].click();
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-        tabs[prevIndex].click();
-      }
-    });
 
     // === MOBILE BOTTOM NAVIGATION ===
     const mobileNavItems = document.querySelectorAll('.mobile-nav-item');

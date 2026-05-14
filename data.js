@@ -311,11 +311,28 @@ const StorageManager = {
   },
 
   getCurrentUser() {
-    const session = localStorage.getItem('logic_frete_session');
-    return session ? JSON.parse(session) : null;
+    try {
+      const session = localStorage.getItem('logic_frete_session');
+      return session ? JSON.parse(session) : null;
+    } catch (e) {
+      console.error("StorageManager: Erro ao acessar localStorage", e);
+      return null;
+    }
   },
-  setCurrentUser(user) { localStorage.setItem('logic_frete_session', JSON.stringify(user)); },
-  logout() { localStorage.removeItem('logic_frete_session'); },
+  setCurrentUser(user) { 
+    try {
+      localStorage.setItem('logic_frete_session', JSON.stringify(user)); 
+    } catch (e) {
+      console.error("StorageManager: Erro ao salvar no localStorage", e);
+    }
+  },
+  logout() { 
+    try {
+      localStorage.removeItem('logic_frete_session'); 
+    } catch (e) {
+      console.error("StorageManager: Erro ao remover do localStorage", e);
+    }
+  },
 
   // ─── DASHBOARD ─────────────────────────────────────────────────────────────
   getDashboardStats() {
