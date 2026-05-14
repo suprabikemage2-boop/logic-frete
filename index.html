@@ -232,9 +232,9 @@
         </div>
         <div class="filter-chips">
           <button class="chip active" data-filter="all">Todas</button>
-          <button class="chip" data-filter="planned">Plan.</button>
-          <button class="chip" data-filter="active">Andam.</button>
-          <button class="chip" data-filter="done">Concl.</button>
+          <button class="chip" data-filter="planned">Planejadas</button>
+          <button class="chip" data-filter="active">Em Andamento</button>
+          <button class="chip" data-filter="done">Concluídas</button>
         </div>
       </div>
       <div class="main-grid-list" id="routesListMain"></div>
@@ -299,8 +299,11 @@
           <i class="ri-focus-3-line"></i>
         </button>
         
-        <!-- Theme & Traffic Group for Mobile Bottom Right -->
-        <div class="map-mobile-extra-tools">
+        <!-- Theme & Traffic Group for Right Side -->
+        <div class="map-extra-tools">
+          <button class="btn-icon theme-btn" data-theme="satellite" title="Modo Satélite">
+            <i class="ri-earth-line"></i>
+          </button>
           <button class="btn-icon theme-btn" data-theme="dark" title="Modo Escuro">
             <i class="ri-moon-fill"></i>
           </button>
@@ -308,6 +311,8 @@
             <i class="ri-sun-line"></i>
           </button>
           <button class="btn-icon theme-btn" id="btnTraffic" title="Trânsito">
+            <i class="ri-traffic-light-line"></i>
+          </button>
             <i class="ri-traffic-light-line"></i>
           </button>
         </div>
@@ -320,22 +325,6 @@
         </button>
       </div>
 
-      <!-- Map Theme Switcher (Desktop Only) -->
-      <div class="map-theme-switcher desktop-only">
-        <button class="theme-btn" data-theme="dark" title="Modo Escuro">
-          <i class="ri-moon-fill"></i>
-        </button>
-        <button class="theme-btn" data-theme="satellite" title="Modo Satélite">
-          <i class="ri-earth-line"></i>
-        </button>
-        <button class="theme-btn active" data-theme="light" title="Modo Claro">
-          <i class="ri-sun-line"></i>
-        </button>
-        <div class="theme-divider"></div>
-        <button class="theme-btn" id="btnTrafficDesktop" title="Trânsito">
-          <i class="ri-traffic-light-line"></i>
-        </button>
-      </div>
     </div>
 
     <!-- The Map -->

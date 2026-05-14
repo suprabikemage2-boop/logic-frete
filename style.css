@@ -1426,6 +1426,62 @@
     transition: width 0.3s ease;
   }
 
+  /* === Right Side Map Actions === */
+  .map-actions-group {
+    display: none; /* Hide by default, show when .view-map */
+    pointer-events: auto;
+    position: fixed;
+    bottom: 30px;
+    right: 15px;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+  }
+
+  .view-map .map-actions-group {
+    display: flex !important;
+  }
+
+  .map-extra-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .map-extra-tools .btn-icon,
+  .map-actions-group .btn-icon {
+    background: rgba(13, 25, 48, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    color: var(--text-white);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: var(--transition);
+  }
+
+  .map-extra-tools .btn-icon:hover,
+  .map-actions-group .btn-icon:hover {
+    transform: scale(1.05);
+    background: rgba(13, 25, 48, 1) !important;
+  }
+
+  .map-extra-tools .btn-icon.active {
+    background: var(--accent-primary) !important;
+    color: var(--bg-dark);
+  }
+
+  #btnLocate {
+    background: var(--accent-primary) !important;
+    color: var(--bg-dark) !important;
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.4) !important;
+  }
+
   @media (max-width: 768px) {
     .map-controls-overlay {
       top: 15px;
@@ -1433,11 +1489,13 @@
       height: 48px;
       border-radius: 10px;
     }
+    
     .map-actions-group {
-      display: none; /* Hide extra map buttons on mobile to focus on search bar centralization */
+      bottom: calc(var(--mobile-nav-h) + 20px) !important;
     }
   }
   
+
   .address-search-wrap {
     flex: 1;
     position: relative;
@@ -3293,31 +3351,23 @@
     height: 44px !important;
   }
 
-  /* === MODAL: bottom sheet === */
+  /* === MODAL: mobile size reduction === */
   .modal-overlay {
-    align-items: flex-end !important;
+    align-items: center !important;
+    padding: 20px !important;
   }
 
   .modal {
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: 92vh !important;
-    border-radius: 20px 20px 0 0 !important;
-    margin-top: auto !important;
+    width: 96% !important;
+    max-width: 400px !important;
+    max-height: 85vh !important;
+    border-radius: 12px !important;
+    margin: 0 auto !important;
   }
 
-  /* Modal drag handle indicator */
+  /* Remove drag handle indicator since it's not a bottom sheet anymore */
   .modal-header::before {
-    content: '';
-    display: block;
-    width: 36px;
-    height: 4px;
-    background: rgba(136, 146, 176, 0.3);
-    border-radius: 2px;
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
+    display: none !important;
   }
 
   .modal-header {
@@ -3428,10 +3478,16 @@
     -webkit-backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 12px !important;
-    height: 56px !important;
+    height: 52px !important;
     padding: 0 15px !important;
-    width: 100% !important;
+    width: calc(100% - 32px) !important;
+    margin: 0 auto !important;
+    position: fixed !important;
+    top: 15px !important;
+    left: 16px !important;
+    right: 16px !important;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+    z-index: 2000 !important;
   }
 
   .address-search-wrap input {
@@ -3440,41 +3496,6 @@
     color: var(--text-white) !important;
   }
 
-  .map-actions-group {
-    display: flex !important; /* Force visible on mobile now */
-    pointer-events: auto !important;
-    position: fixed !important;
-    bottom: calc(var(--mobile-nav-h) + 20px) !important;
-    right: 15px !important;
-    flex-direction: column !important;
-    gap: 12px !important;
-    z-index: 1000;
-  }
-
-  .map-mobile-extra-tools {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .map-mobile-extra-tools .btn-icon {
-    background: rgba(13, 25, 48, 0.9) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    color: var(--text-white);
-  }
-
-  .map-mobile-extra-tools .btn-icon.active {
-    background: var(--accent-primary) !important;
-    color: var(--bg-dark);
-  }
-
-  #btnLocate {
-    background: var(--accent-primary) !important;
-    color: var(--bg-dark) !important;
-    box-shadow: 0 0 20px rgba(0, 212, 170, 0.4) !important;
-  }
 
   /* Push search placeholder further to the right on mobile */
   #searchRoutesMain {

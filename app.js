@@ -431,6 +431,24 @@
       document.getElementById('tab-routes').click();
     });
   
+    // === ROUTES VIEW FILTER & SEARCH LOGIC ===
+    const routeChips = document.querySelectorAll('#mainRoutesView .filter-chips .chip');
+    routeChips.forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        routeChips.forEach(c => c.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        // Render function is defined below, wait until available
+        if (typeof renderRoutesList === 'function') renderRoutesList();
+      });
+    });
+
+    const routeSearchInput = document.getElementById('searchRoutesMain');
+    if (routeSearchInput) {
+      routeSearchInput.addEventListener('input', () => {
+        if (typeof renderRoutesList === 'function') renderRoutesList();
+      });
+    }
+
     // === SIDEBAR COLLAPSE LOGIC ===
     // Restore collapsed state only on desktop
     if (window.innerWidth > 768) {
@@ -1457,12 +1475,12 @@
           <div class="task-footer" style="justify-content: flex-end; padding-top: 10px; border-top: 1px solid var(--border-color); margin-top: 5px;">
             <div class="details-actions" style="display: flex; gap: 8px;">
                ${(window.appPermissions?.isMaster || window.appPermissions?.isGerente) ? `
-                 <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openDriverModalFromList('${d.id}')">
-                   <i class="ri-edit-line"></i> Editar
+                 <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openDriverModalFromList('${d.id}')" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                   <i class="ri-edit-line"></i> <span>Editar</span>
                  </button>
-                  <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')">
-                    <i class="ri-delete-bin-line"></i> Excluir
-                  </button>
+                   <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                     <i class="ri-delete-bin-line"></i> <span>Excluir</span>
+                   </button>
                ` : ''}
             </div>
           </div>
@@ -1698,6 +1716,21 @@
         }
       }
     });
+
+    // Calendar Scroll Navigation
+    const kanban = document.getElementById('calendarKanban');
+    if (kanban) {
+      kanban.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaX) > 10 || Math.abs(e.deltaY) > 10) {
+          e.preventDefault();
+          if (e.deltaX > 0 || e.deltaY > 0) {
+            window.nextWeek();
+          } else {
+            window.prevWeek();
+          }
+        }
+      }, { passive: false });
+    }
 
     // Calendar Drag and Drop Handlers
     window.handleCalendarDragOver = (e) => {
