@@ -137,6 +137,12 @@
     color: rgba(136, 146, 176, 0.5);
   }
   
+  .item-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-white);
+  }
+
   /* Scrollbar customizada */
   ::-webkit-scrollbar {
     width: 6px;
@@ -3194,7 +3200,24 @@
     gap: 10px !important;
   }
 
-  /* === PANEL HEADER === */
+  /* === MOBILE TYPOGRAPHY IMPROVEMENTS === */
+  body {
+    font-size: 15px !important; /* Slightly larger base font for mobile */
+    line-height: 1.6 !important;
+    letter-spacing: -0.011em !important;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    letter-spacing: -0.02em !important;
+  }
+
+  .main-panel-title {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: var(--text-white) !important;
+  }
+
   .main-panel-header {
     flex-direction: row !important;
     align-items: center !important;
@@ -3774,8 +3797,29 @@
 
   .btn-primary,
   .btn-secondary {
-    padding: 10px 14px !important;
-    font-size: 0.85rem !important;
+    padding: 12px 18px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  /* Improve list item text for mobile */
+  .item-title {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+  }
+
+  .item-collapsed-meta span {
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+  }
+
+  .badge {
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    padding: 3px 8px !important;
+    letter-spacing: 0.3px !important;
+    text-transform: uppercase !important;
   }
 
   /* Calendar column smaller */
@@ -3805,9 +3849,11 @@
     gap: 12px !important;
   }
 
-  /* Bottom nav labels smaller */
+  /* Bottom nav labels smaller but bolder */
   .mobile-nav-item span {
-    font-size: 0.56rem !important;
+    font-size: 0.65rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.2px !important;
   }
 
   .mobile-nav-item i {

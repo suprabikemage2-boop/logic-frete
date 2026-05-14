@@ -1125,7 +1125,7 @@
             <div style="display:flex; justify-content: space-between; align-items: center;">
               <div style="display:flex; align-items:center; gap:10px; overflow:hidden">
                 <span class="badge ${st.class}">${st.label}</span>
-                <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${r.name}</span>
+                <span class="item-title">${r.name}</span>
               </div>
               <div class="item-actions" style="display: flex; align-items: center; gap: 8px;">
                  <button class="btn-icon-xs" style="background: var(--accent-primary); color: var(--bg-dark); border-radius: 50%; width: 24px; height: 24px;" onclick="event.stopPropagation(); window.openDeliveryModalForRoute('${r.id}')" title="Criar Parada">
@@ -1443,7 +1443,7 @@
             <div style="display:flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div style="display:flex; align-items:center; gap:10px; flex: 1; word-break: break-word; min-width: 0;">
                 <div class="task-indicator" style="background: var(--accent-primary); width: 4px; height: 16px; border-radius: 2px; flex-shrink: 0;"></div>
-                <span class="item-title" style="font-size: 1.1rem; font-weight: 800;">${(d.name || 'SEM NOME').toUpperCase()}</span>
+                <span class="item-title">${(d.name || 'SEM NOME').toUpperCase()}</span>
               </div>
               <div class="item-actions">
                  <i class="ri-arrow-down-s-line expand-icon"></i>
@@ -1480,7 +1480,7 @@
                    <i class="ri-edit-line"></i> Editar
                  </button>
                   <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')">
-                    <i class="ri-delete-bin-line"></i> Excluir Motorista
+                    <i class="ri-delete-bin-line"></i> Excluir
                   </button>
                ` : ''}
             </div>
@@ -1489,8 +1489,19 @@
   
         div.addEventListener('click', () => {
           const wasExpanded = div.classList.contains('expanded');
-          document.querySelectorAll('.driver-item.expanded').forEach(item => item.classList.remove('expanded'));
-          if (!wasExpanded) div.classList.add('expanded');
+          
+          // Close others and reset icons
+          document.querySelectorAll('.driver-item.expanded').forEach(item => {
+            item.classList.remove('expanded');
+            const icon = item.querySelector('.expand-icon');
+            if (icon) icon.classList.replace('ri-arrow-up-s-line', 'ri-arrow-down-s-line');
+          });
+          
+          if (!wasExpanded) {
+            div.classList.add('expanded');
+            const icon = div.querySelector('.expand-icon');
+            if (icon) icon.classList.replace('ri-arrow-down-s-line', 'ri-arrow-up-s-line');
+          }
         });
         list.appendChild(div);
       });
