@@ -22,11 +22,38 @@
     --border-color: rgba(136, 146, 176, 0.2);
     --border-focus: rgba(0, 212, 170, 0.5);
     
-    /* Typography */
-    --font-ui: 'Inter', sans-serif;
-    --font-mono: 'Roboto Mono', monospace;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+  --topbar-height: 70px;
+  --sidebar-w: 280px;
+  --mobile-nav-h: 70px;
+}
+
+.desktop-only { display: none !important; }
+@media (min-width: 769px) {
+  .desktop-only { display: flex !important; }
+}
+
+.btn-logout-mobile {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ff4d4d;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-logout-mobile:hover {
+  background: var(--accent-danger);
+  color: white;
+}
     
     /* Effects */
+    :root {
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -3391,18 +3418,66 @@
   }
 
   .map-actions-group {
-    display: none !important; /* Hide by default on mobile */
+    display: flex !important; /* Force visible on mobile now */
     pointer-events: auto !important;
     position: fixed !important;
-    bottom: calc(var(--mobile-nav-h) + var(--safe-b) + 20px) !important;
-    right: 16px !important;
+    bottom: calc(var(--mobile-nav-h) + 20px) !important;
+    right: 15px !important;
     flex-direction: column !important;
     gap: 12px !important;
-    background: transparent !important;
-    padding: 0 !important;
-    width: auto !important;
-    z-index: 1001 !important;
-    transition: bottom 0.3s ease !important;
+    z-index: 1000;
+  }
+
+  .map-mobile-extra-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .map-mobile-extra-tools .btn-icon {
+    background: rgba(13, 25, 48, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    color: var(--text-white);
+  }
+
+  .map-mobile-extra-tools .btn-icon.active {
+    background: var(--accent-primary) !important;
+    color: var(--bg-dark);
+  }
+
+  #btnLocate {
+    background: var(--accent-primary) !important;
+    color: var(--bg-dark) !important;
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.4) !important;
+  }
+
+  /* Push search placeholder further to the right on mobile */
+  #searchRoutesMain {
+    padding-left: 55px !important;
+  }
+
+  .search-box-main i {
+    left: 20px !important;
+  }
+
+  /* Resize New Route Modal on Mobile */
+  #modalRoute .modal {
+    width: 90% !important;
+    max-width: 400px !important;
+    max-height: 85vh !important;
+    margin: auto !important;
+    border-radius: 16px !important;
+  }
+
+  #modalRoute .modal-body {
+    padding: 15px !important;
+  }
+
+  #modalRoute .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
 
   /* Show only on map screen */
@@ -4050,67 +4125,7 @@
 /* ==========================================================================
    MOBILE BOTTOM NAVIGATION
    ========================================================================== */
-.mobile-bottom-nav {
-  display: none;
-}
 
-@media (max-width: 768px) {
-  .mobile-bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 65px;
-    background: var(--bg-panel);
-    backdrop-filter: var(--glass-blur);
-    border-top: 1px solid var(--border-color);
-    z-index: 1000;
-  }
-  
-  .mobile-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    flex: 1;
-    height: 100%;
-    background: transparent;
-    border: none;
-  }
-  
-  .mobile-nav-item i {
-    font-size: 1.4rem;
-    transition: var(--transition);
-  }
-  
-  .mobile-nav-item.active {
-    color: var(--accent-primary);
-  }
-  
-  .mobile-nav-item.active i {
-    transform: translateY(-2px);
-  }
-  
-  /* Add padding to the bottom of main views so the nav doesn't cover content */
-  .main-dashboard-view, .main-panel-view {
-    padding: 20px !important;
-    padding-bottom: 85px !important;
-  }
-  
-  .main-panel-title {
-    font-size: 1.5rem !important;
-  }
-  
-  .stats-grid-main {
-    grid-template-columns: 1fr 1fr !important;
-  }
-}
 
 
 

@@ -136,6 +136,11 @@
       checkAuth();
     });
 
+    document.getElementById('btnLogoutMobile')?.addEventListener('click', () => {
+      StorageManager.logout();
+      checkAuth();
+    });
+
     function applyPermissions() {
       if (!currentUser) return;
       
@@ -481,16 +486,23 @@
       });
     });
 
-    document.getElementById('btnTraffic')?.addEventListener('click', (e) => {
+    const handleTrafficToggle = (e) => {
       const isActive = MapService.toggleTraffic();
-      e.currentTarget.classList.toggle('active', isActive);
+      const desktopBtn = document.getElementById('btnTrafficDesktop');
+      const mobileBtn = document.getElementById('btnTraffic');
+      
+      desktopBtn?.classList.toggle('active', isActive);
+      mobileBtn?.classList.toggle('active', isActive);
       
       if(isActive) {
         showToast('Trânsito em tempo real ativado');
       } else {
         showToast('Trânsito desativado');
       }
-    });
+    };
+
+    document.getElementById('btnTraffic')?.addEventListener('click', handleTrafficToggle);
+    document.getElementById('btnTrafficDesktop')?.addEventListener('click', handleTrafficToggle);
 
     // === SEARCH SUGGESTIONS LOGIC (Nominatim) ===
     let debounceTimer;
@@ -1442,14 +1454,14 @@
               <span><i class="ri-phone-line"></i> ${d.phone || '-'}</span>
               <span><i class="ri-truck-line"></i> ${d.vehicle || '-'}</span>
               <span><i class="ri-route-line"></i> ${routeCount} rotas</span>
-              <span><i class="ri-map-2-line"></i> ${totalKm} km</span>
+              <span><i class="ri-pin-distance-line"></i> ${totalKm} km</span>
             </div>
           </div>
 
           <div class="item-details" style="padding: 15px; border-top: 1px solid var(--border-color);">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px;">
-              <div class="meta-item"><i class="ri-user-star-line"></i> <strong>Tipo:</strong> ${d.isUser ? 'Usuário do Sistema' : 'Motorista Externo'}</div>
-              <div class="meta-item"><i class="ri-dashboard-line"></i> <strong>Total KM:</strong> ${totalKm} km acumulados</div>
+              <div class="meta-item"><i class="ri-user-badge-line"></i> <strong>Vínculo:</strong> ${d.isUser ? 'Interno (Usuário)' : 'Externo (Manual)'}</div>
+              <div class="meta-item"><i class="ri-pin-distance-line"></i> <strong>Total KM:</strong> ${totalKm} km percorridos</div>
             </div>
 
             <div class="driver-history-list">
@@ -1467,9 +1479,9 @@
                  <button class="btn-secondary btn-sm" onclick="event.stopPropagation(); window.openDriverModalFromList('${d.id}')">
                    <i class="ri-edit-line"></i> Editar
                  </button>
-                 <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')">
-                   <i class="ri-delete-bin-line"></i> Excluir
-                 </button>
+                  <button class="btn-danger btn-sm" onclick="event.stopPropagation(); window.deleteDriverFromList('${d.id}')">
+                    <i class="ri-delete-bin-line"></i> Excluir Motorista
+                  </button>
                ` : ''}
             </div>
           </div>
